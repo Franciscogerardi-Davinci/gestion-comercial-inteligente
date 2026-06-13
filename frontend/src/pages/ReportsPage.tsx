@@ -1,9 +1,15 @@
-import { Download, FilterAlt } from '@mui/icons-material';
+import {
+  AccountBalanceWallet,
+  Download,
+  FilterAlt,
+  PointOfSale,
+  Savings,
+  TrendingUp,
+} from '@mui/icons-material';
 import {
   Alert,
   Box,
   Button,
-  CircularProgress,
   Paper,
   Stack,
   Table,
@@ -20,6 +26,7 @@ import { useState } from 'react';
 
 import { getApiErrorMessage } from '../api/apiError';
 import { EmptyTableRow } from '../components/EmptyTableRow';
+import { LoadingState } from '../components/LoadingState';
 import { MetricCard } from '../components/MetricCard';
 import { PageHeader } from '../components/PageHeader';
 import {
@@ -28,6 +35,8 @@ import {
   getSalesReport,
   type ReportFilters,
 } from '../features/reports/reportsApi';
+import { useNotifications } from '../features/notifications/useNotifications';
+import { formatDate, formatDateOnly } from '../utils/dateFormat';
 
 const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 const today = new Date();
@@ -37,6 +46,7 @@ const initialFilters: ReportFilters = {
 };
 
 export function ReportsPage() {
+  const { notify } = useNotifications();
   const [filters, setFilters] = useState(initialFilters);
   const [draftFilters, setDraftFilters] = useState(initialFilters);
   const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -56,8 +66,11 @@ export function ReportsPage() {
     setDownloadError(null);
     try {
       await downloadReport(type, format, filters);
+      notify(`Reporte de ${type === 'sales' ? 'ventas' : 'gastos'} descargado correctamente.`);
     } catch (error) {
-      setDownloadError(getApiErrorMessage(error));
+      const message = getApiErrorMessage(error);
+      setDownloadError(message);
+      notify(message, 'error');
     } finally {
       setDownloading(null);
     }
@@ -72,8 +85,12 @@ export function ReportsPage() {
         title="Reportes"
         description="Analice ventas, costos históricos, gastos y ganancia estimada."
       />
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+      <Paper sx={{ p: { xs: 2, md: 2.5 }, mb: 3 }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2}
+          sx={{ alignItems: { md: 'center' } }}
+        >
           <TextField
             label="Desde"
             type="date"
@@ -96,8 +113,18 @@ export function ReportsPage() {
             startIcon={<FilterAlt />}
             variant="contained"
             onClick={() => setFilters(draftFilters)}
+            sx={{ ml: { md: 'auto' } }}
           >
-            Aplicar
+            Aplicar filtros
+          </Button>
+          <Button
+            variant="text"
+            onClick={() => {
+              setDraftFilters(initialFilters);
+              setFilters(initialFilters);
+            }}
+          >
+            Limpiar filtros
           </Button>
         </Stack>
       </Paper>
@@ -108,7 +135,7 @@ export function ReportsPage() {
         </Alert>
       )}
       {isLoading ? (
-        <CircularProgress />
+        <LoadingState message="Generando reportes..." />
       ) : queryError || !salesQuery.data || !expensesQuery.data ? (
         <Alert severity="error">{getApiErrorMessage(queryError)}</Alert>
       ) : (
@@ -124,22 +151,26 @@ export function ReportsPage() {
             <MetricCard
               label="Ventas"
               value={currency.format(Number(salesQuery.data.summary.salesTotal))}
-              icon={null}
+              icon={<PointOfSale />}
+              color="#3157A4"
             />
             <MetricCard
               label="Costo histórico"
               value={currency.format(Number(salesQuery.data.summary.historicalCost))}
-              icon={null}
+              icon={<TrendingUp />}
+              color="#2878B5"
             />
             <MetricCard
               label="Ganancia bruta"
               value={currency.format(Number(salesQuery.data.summary.grossProfit))}
-              icon={null}
+              icon={<Savings />}
+              color="#1F8A5B"
             />
             <MetricCard
               label="Gastos"
               value={currency.format(Number(expensesQuery.data.summary.expensesTotal))}
-              icon={null}
+              icon={<AccountBalanceWallet />}
+              color="#D98524"
             />
             <MetricCard
               label="Ganancia estimada"
@@ -147,7 +178,8 @@ export function ReportsPage() {
                 Number(salesQuery.data.summary.grossProfit) -
                   Number(expensesQuery.data.summary.expensesTotal),
               )}
-              icon={null}
+              icon={<Savings />}
+              color="#0F8B8D"
             />
           </Box>
 
@@ -156,6 +188,7 @@ export function ReportsPage() {
             actions={
               <>
                 <Button
+                  variant="outlined"
                   startIcon={<Download />}
                   disabled={downloading !== null}
                   onClick={() => handleDownload('sales', 'pdf')}
@@ -163,6 +196,7 @@ export function ReportsPage() {
                   PDF
                 </Button>
                 <Button
+                  variant="contained"
                   startIcon={<Download />}
                   disabled={downloading !== null}
                   onClick={() => handleDownload('sales', 'excel')}
@@ -189,7 +223,7 @@ export function ReportsPage() {
                 )}
                 {salesQuery.data.sales.map((sale) => (
                   <TableRow key={sale.id}>
-                    <TableCell>{new Date(sale.createdAt).toLocaleDateString('es-AR')}</TableCell>
+                    <TableCell>{formatDate(sale.createdAt)}</TableCell>
                     <TableCell>{sale.id.slice(0, 8)}</TableCell>
                     <TableCell align="right">{sale.itemCount}</TableCell>
                     <TableCell align="right">{currency.format(Number(sale.total))}</TableCell>
@@ -208,6 +242,7 @@ export function ReportsPage() {
             actions={
               <>
                 <Button
+                  variant="outlined"
                   startIcon={<Download />}
                   disabled={downloading !== null}
                   onClick={() => handleDownload('expenses', 'pdf')}
@@ -215,6 +250,7 @@ export function ReportsPage() {
                   PDF
                 </Button>
                 <Button
+                  variant="contained"
                   startIcon={<Download />}
                   disabled={downloading !== null}
                   onClick={() => handleDownload('expenses', 'excel')}
@@ -239,7 +275,7 @@ export function ReportsPage() {
                 )}
                 {expensesQuery.data.expenses.map((expense) => (
                   <TableRow key={expense.id}>
-                    <TableCell>{expense.expenseDate.slice(0, 10)}</TableCell>
+                    <TableCell>{formatDateOnly(expense.expenseDate)}</TableCell>
                     <TableCell>{expense.category}</TableCell>
                     <TableCell>{expense.description}</TableCell>
                     <TableCell align="right">{currency.format(Number(expense.amount))}</TableCell>
@@ -271,13 +307,21 @@ function ReportSection({
   children: React.ReactNode;
 }) {
   return (
-    <Paper sx={{ mb: 3 }}>
+    <Paper sx={{ mb: 3, overflow: 'hidden' }}>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
-        sx={{ p: 2, justifyContent: 'space-between', alignItems: { sm: 'center' } }}
+        sx={{
+          p: 2.5,
+          justifyContent: 'space-between',
+          alignItems: { sm: 'center' },
+          borderBottom: '1px solid',
+          borderColor: 'divider',
+        }}
       >
         <Typography variant="h6">{title}</Typography>
-        <Stack direction="row">{actions}</Stack>
+        <Stack direction="row" spacing={1}>
+          {actions}
+        </Stack>
       </Stack>
       <TableContainer sx={{ overflowX: 'auto' }}>{children}</TableContainer>
     </Paper>

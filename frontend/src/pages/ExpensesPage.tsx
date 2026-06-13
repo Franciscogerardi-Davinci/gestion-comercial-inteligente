@@ -3,7 +3,6 @@ import { Add, Delete, Edit, FilterAlt } from '@mui/icons-material';
 import {
   Alert,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -25,7 +24,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { EmptyTableRow } from '../components/EmptyTableRow';
+import { LoadingState } from '../components/LoadingState';
 import { PageHeader } from '../components/PageHeader';
 import {
   createExpense,
@@ -34,17 +35,21 @@ import {
   updateExpense,
   type ExpenseFilters,
 } from '../features/expenses/expensesApi';
+import { useNotifications } from '../features/notifications/useNotifications';
 import { expenseFormSchema, type ExpenseFormValues } from '../schemas/expenseSchemas';
 import type { Expense } from '../types/commerce';
+import { formatDateOnly } from '../utils/dateFormat';
 
 const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 const today = formatLocalDate(new Date());
 
 export function ExpensesPage() {
   const queryClient = useQueryClient();
+  const { notify } = useNotifications();
   const [filters, setFilters] = useState<ExpenseFilters>({});
   const [draftFilters, setDraftFilters] = useState<ExpenseFilters>({});
   const [editing, setEditing] = useState<Expense | null>(null);
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const expensesQuery = useQuery({
@@ -67,16 +72,29 @@ export function ExpensesPage() {
       return editing ? updateExpense(editing.id, input) : createExpense(input);
     },
     onSuccess: async () => {
+      notify(editing ? 'Gasto actualizado correctamente.' : 'Gasto creado correctamente.');
       await queryClient.invalidateQueries({ queryKey: ['expenses'] });
       setDialogOpen(false);
       setEditing(null);
     },
-    onError: (error) => setActionError(getApiErrorMessage(error)),
+    onError: (error) => {
+      const message = getApiErrorMessage(error);
+      setActionError(message);
+      notify(message, 'error');
+    },
   });
   const deleteMutation = useMutation({
     mutationFn: deleteExpense,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
-    onError: (error) => setActionError(getApiErrorMessage(error)),
+    onSuccess: async () => {
+      notify('Gasto eliminado correctamente.');
+      setExpenseToDelete(null);
+      await queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    },
+    onError: (error) => {
+      const message = getApiErrorMessage(error);
+      setActionError(message);
+      notify(message, 'error');
+    },
   });
 
   const openEdit = (expense: Expense) => {
@@ -105,8 +123,12 @@ export function ExpensesPage() {
           setDialogOpen(true);
         }}
       />
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+      <Paper sx={{ p: { xs: 2, md: 2.5 }, mb: 3 }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2}
+          sx={{ alignItems: { md: 'center' } }}
+        >
           <TextField
             label="Desde"
             type="date"
@@ -134,10 +156,20 @@ export function ExpensesPage() {
           />
           <Button
             startIcon={<FilterAlt />}
-            variant="outlined"
+            variant="contained"
             onClick={() => setFilters(draftFilters)}
+            sx={{ ml: { md: 'auto' } }}
           >
-            Filtrar
+            Aplicar filtros
+          </Button>
+          <Button
+            variant="text"
+            onClick={() => {
+              setDraftFilters({});
+              setFilters({});
+            }}
+          >
+            Limpiar filtros
           </Button>
         </Stack>
       </Paper>
@@ -147,7 +179,7 @@ export function ExpensesPage() {
         </Alert>
       )}
       {expensesQuery.isLoading ? (
-        <CircularProgress />
+        <LoadingState message="Cargando gastos..." />
       ) : expensesQuery.isError ? (
         <Alert severity="error">{getApiErrorMessage(expensesQuery.error)}</Alert>
       ) : (
@@ -172,7 +204,7 @@ export function ExpensesPage() {
               )}
               {expensesQuery.data?.map((expense) => (
                 <TableRow key={expense.id} hover>
-                  <TableCell>{expense.expenseDate.slice(0, 10)}</TableCell>
+                  <TableCell>{formatDateOnly(expense.expenseDate)}</TableCell>
                   <TableCell>{expense.category}</TableCell>
                   <TableCell>{expense.description}</TableCell>
                   <TableCell>
@@ -186,13 +218,7 @@ export function ExpensesPage() {
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Eliminar">
-                      <IconButton
-                        color="error"
-                        onClick={() => {
-                          if (window.confirm('¿Eliminar este gasto?'))
-                            deleteMutation.mutate(expense.id);
-                        }}
-                      >
+                      <IconButton color="error" onClick={() => setExpenseToDelete(expense)}>
                         <Delete />
                       </IconButton>
                     </Tooltip>
@@ -249,6 +275,17 @@ export function ExpensesPage() {
           </DialogActions>
         </Stack>
       </Dialog>
+      <ConfirmDialog
+        open={Boolean(expenseToDelete)}
+        title="Eliminar gasto"
+        description={`Se eliminará el gasto "${expenseToDelete?.description ?? ''}" de los reportes activos. Esta acción no afecta ventas ni stock.`}
+        confirmLabel="Eliminar"
+        pending={deleteMutation.isPending}
+        onCancel={() => setExpenseToDelete(null)}
+        onConfirm={() => {
+          if (expenseToDelete) deleteMutation.mutate(expenseToDelete.id);
+        }}
+      />
     </>
   );
 }

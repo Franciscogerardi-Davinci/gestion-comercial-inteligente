@@ -2,7 +2,6 @@ import { Add, Visibility } from '@mui/icons-material';
 import {
   Alert,
   Chip,
-  CircularProgress,
   IconButton,
   Paper,
   Table,
@@ -18,8 +17,10 @@ import { useNavigate } from 'react-router';
 
 import { getApiErrorMessage } from '../api/apiError';
 import { EmptyTableRow } from '../components/EmptyTableRow';
+import { LoadingState } from '../components/LoadingState';
 import { PageHeader } from '../components/PageHeader';
 import { getSales } from '../features/sales/salesApi';
+import { formatDateTime } from '../utils/dateFormat';
 
 const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 
@@ -37,7 +38,7 @@ export function SalesPage() {
         onAction={() => navigate('/sales/new')}
       />
       {salesQuery.isLoading ? (
-        <CircularProgress />
+        <LoadingState message="Cargando ventas..." />
       ) : salesQuery.isError ? (
         <Alert severity="error">{getApiErrorMessage(salesQuery.error)}</Alert>
       ) : (
@@ -59,7 +60,7 @@ export function SalesPage() {
               )}
               {salesQuery.data?.map((sale) => (
                 <TableRow key={sale.id} hover>
-                  <TableCell>{new Date(sale.createdAt).toLocaleString('es-AR')}</TableCell>
+                  <TableCell>{formatDateTime(sale.createdAt)}</TableCell>
                   <TableCell>
                     <Chip
                       size="small"

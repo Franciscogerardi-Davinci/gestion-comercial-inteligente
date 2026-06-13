@@ -14,21 +14,28 @@ export function PageHeader(props: PageHeaderProps) {
     <Box
       sx={{
         display: 'flex',
-        gap: 2,
+        gap: 2.5,
         justifyContent: 'space-between',
         alignItems: { xs: 'flex-start', sm: 'center' },
         flexDirection: { xs: 'column', sm: 'row' },
-        mb: 3,
+        mb: { xs: 3, md: 4 },
       }}
     >
-      <Box>
-        <Typography component="h1" variant="h4">
+      <Box sx={{ maxWidth: 720 }}>
+        <Typography component="h1" variant="h4" sx={{ mb: 0.75 }}>
           {props.title}
         </Typography>
-        <Typography color="text.secondary">{props.description}</Typography>
+        <Typography color="text.secondary" sx={{ fontSize: { xs: '0.925rem', md: '1rem' } }}>
+          {props.description}
+        </Typography>
       </Box>
       {props.actionLabel && props.onAction && (
-        <Button variant="contained" startIcon={props.actionIcon} onClick={props.onAction}>
+        <Button
+          variant="contained"
+          startIcon={props.actionIcon}
+          onClick={props.onAction}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
           {props.actionLabel}
         </Button>
       )}

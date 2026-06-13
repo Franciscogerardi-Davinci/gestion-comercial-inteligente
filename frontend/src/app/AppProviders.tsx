@@ -4,6 +4,7 @@ import type { PropsWithChildren } from 'react';
 import { BrowserRouter } from 'react-router';
 
 import { AuthProvider } from '../features/auth/AuthProvider';
+import { NotificationProvider } from '../features/notifications/NotificationProvider';
 import { theme } from '../theme/theme';
 
 const queryClient = new QueryClient({
@@ -21,7 +22,9 @@ export function AppProviders({ children }: PropsWithChildren) {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <BrowserRouter>
-          <AuthProvider>{children}</AuthProvider>
+          <NotificationProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </NotificationProvider>
         </BrowserRouter>
       </ThemeProvider>
     </QueryClientProvider>

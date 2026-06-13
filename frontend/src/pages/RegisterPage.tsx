@@ -6,11 +6,13 @@ import { Link as RouterLink, useNavigate } from 'react-router';
 
 import { getApiErrorMessage } from '../api/apiError';
 import { useAuth } from '../features/auth/useAuth';
+import { useNotifications } from '../features/notifications/useNotifications';
 import { registerFormSchema, type RegisterFormValues } from '../schemas/authSchemas';
 
 export function RegisterPage() {
   const [serverError, setServerError] = useState<string | null>(null);
   const { register: registerUser } = useAuth();
+  const { notify } = useNotifications();
   const navigate = useNavigate();
   const {
     register,
@@ -39,15 +41,23 @@ export function RegisterPage() {
         email: values.email,
         password: values.password,
       });
+      notify('Comercio y usuario creados correctamente.');
       navigate('/', { replace: true });
     } catch (error) {
-      setServerError(getApiErrorMessage(error));
+      const message = getApiErrorMessage(error);
+      setServerError(message);
+      notify(message, 'error');
     }
   });
 
   return (
     <Stack component="form" spacing={2} onSubmit={onSubmit} noValidate>
-      <Typography variant="h5">Crear cuenta</Typography>
+      <Stack spacing={0.75} sx={{ mb: 1 }}>
+        <Typography variant="h4">Crear cuenta</Typography>
+        <Typography color="text.secondary">
+          Configure su comercio y comience a organizar la operación.
+        </Typography>
+      </Stack>
       {serverError && <Alert severity="error">{serverError}</Alert>}
       <TextField
         label="Nombre del comercio"
@@ -98,7 +108,7 @@ export function RegisterPage() {
       <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
         {isSubmitting ? 'Creando cuenta...' : 'Registrarse'}
       </Button>
-      <Typography color="text.secondary">
+      <Typography color="text.secondary" variant="body2" sx={{ textAlign: 'center' }}>
         ¿Ya tiene una cuenta?{' '}
         <Link component={RouterLink} to="/login">
           Iniciar sesión

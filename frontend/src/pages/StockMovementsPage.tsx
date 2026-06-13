@@ -3,7 +3,6 @@ import { Add } from '@mui/icons-material';
 import {
   Alert,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -28,10 +27,13 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 
 import { getApiErrorMessage } from '../api/apiError';
 import { EmptyTableRow } from '../components/EmptyTableRow';
+import { LoadingState } from '../components/LoadingState';
 import { PageHeader } from '../components/PageHeader';
 import { createStockMovement, getStockMovements } from '../features/inventory/stockMovementsApi';
+import { useNotifications } from '../features/notifications/useNotifications';
 import { getProducts } from '../features/products/productsApi';
 import { stockMovementFormSchema, type StockMovementFormValues } from '../schemas/inventorySchemas';
+import { formatDateTime } from '../utils/dateFormat';
 
 const movementLabels = {
   IN: 'Entrada',
@@ -41,6 +43,7 @@ const movementLabels = {
 
 export function StockMovementsPage() {
   const queryClient = useQueryClient();
+  const { notify } = useNotifications();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const movementsQuery = useQuery({
@@ -64,6 +67,7 @@ export function StockMovementsPage() {
     mutationFn: (values: StockMovementFormValues) =>
       createStockMovement({ ...values, quantity: Number(values.quantity) }),
     onSuccess: async () => {
+      notify('Movimiento de stock registrado correctamente.');
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['stock-movements'] }),
         queryClient.invalidateQueries({ queryKey: ['products'] }),
@@ -71,7 +75,11 @@ export function StockMovementsPage() {
       setDialogOpen(false);
       reset({ productId: '', type: 'IN', quantity: '', reason: '' });
     },
-    onError: (error) => setActionError(getApiErrorMessage(error)),
+    onError: (error) => {
+      const message = getApiErrorMessage(error);
+      setActionError(message);
+      notify(message, 'error');
+    },
   });
 
   return (
@@ -92,7 +100,7 @@ export function StockMovementsPage() {
         </Alert>
       )}
       {movementsQuery.isLoading ? (
-        <CircularProgress />
+        <LoadingState message="Cargando movimientos de stock..." />
       ) : movementsQuery.isError ? (
         <Alert severity="error">{getApiErrorMessage(movementsQuery.error)}</Alert>
       ) : (
@@ -116,7 +124,7 @@ export function StockMovementsPage() {
               )}
               {movementsQuery.data?.map((movement) => (
                 <TableRow key={movement.id} hover>
-                  <TableCell>{new Date(movement.createdAt).toLocaleString('es-AR')}</TableCell>
+                  <TableCell>{formatDateTime(movement.createdAt)}</TableCell>
                   <TableCell>{movement.product.name}</TableCell>
                   <TableCell>{movementLabels[movement.type]}</TableCell>
                   <TableCell align="right">{movement.quantity}</TableCell>

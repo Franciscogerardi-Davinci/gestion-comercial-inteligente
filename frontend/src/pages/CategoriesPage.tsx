@@ -3,7 +3,6 @@ import { Add, Delete, Edit } from '@mui/icons-material';
 import {
   Alert,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -25,7 +24,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { EmptyTableRow } from '../components/EmptyTableRow';
+import { LoadingState } from '../components/LoadingState';
 import { PageHeader } from '../components/PageHeader';
 import {
   createCategory,
@@ -33,12 +34,15 @@ import {
   getCategories,
   updateCategory,
 } from '../features/categories/categoriesApi';
+import { useNotifications } from '../features/notifications/useNotifications';
 import { categoryFormSchema, type CategoryFormValues } from '../schemas/inventorySchemas';
 import type { Category } from '../types/inventory';
 
 export function CategoriesPage() {
   const queryClient = useQueryClient();
+  const { notify } = useNotifications();
   const [editing, setEditing] = useState<Category | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const categoriesQuery = useQuery({ queryKey: ['categories'], queryFn: getCategories });
@@ -56,18 +60,31 @@ export function CategoriesPage() {
     mutationFn: (values: CategoryFormValues) =>
       editing ? updateCategory(editing.id, values) : createCategory(values),
     onSuccess: async () => {
+      notify(editing ? 'Categoría actualizada correctamente.' : 'Categoría creada correctamente.');
       await queryClient.invalidateQueries({ queryKey: ['categories'] });
       setDialogOpen(false);
       setEditing(null);
       reset();
     },
-    onError: (error) => setActionError(getApiErrorMessage(error)),
+    onError: (error) => {
+      const message = getApiErrorMessage(error);
+      setActionError(message);
+      notify(message, 'error');
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteCategory,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
-    onError: (error) => setActionError(getApiErrorMessage(error)),
+    onSuccess: async () => {
+      notify('Categoría desactivada correctamente.');
+      setCategoryToDelete(null);
+      await queryClient.invalidateQueries({ queryKey: ['categories'] });
+    },
+    onError: (error) => {
+      const message = getApiErrorMessage(error);
+      setActionError(message);
+      notify(message, 'error');
+    },
   });
 
   const openCreate = () => {
@@ -99,7 +116,7 @@ export function CategoriesPage() {
         </Alert>
       )}
       {categoriesQuery.isLoading ? (
-        <CircularProgress />
+        <LoadingState message="Cargando categorías..." />
       ) : categoriesQuery.isError ? (
         <Alert severity="error">{getApiErrorMessage(categoriesQuery.error)}</Alert>
       ) : (
@@ -129,14 +146,7 @@ export function CategoriesPage() {
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Desactivar">
-                      <IconButton
-                        color="error"
-                        onClick={() => {
-                          if (window.confirm(`¿Desactivar la categoría "${category.name}"?`)) {
-                            deleteMutation.mutate(category.id);
-                          }
-                        }}
-                      >
+                      <IconButton color="error" onClick={() => setCategoryToDelete(category)}>
                         <Delete />
                       </IconButton>
                     </Tooltip>
@@ -178,6 +188,17 @@ export function CategoriesPage() {
           </DialogActions>
         </Stack>
       </Dialog>
+      <ConfirmDialog
+        open={Boolean(categoryToDelete)}
+        title="Desactivar categoría"
+        description={`La categoría "${categoryToDelete?.name ?? ''}" dejará de estar disponible. Esta acción solo es posible si no tiene productos activos.`}
+        confirmLabel="Desactivar"
+        pending={deleteMutation.isPending}
+        onCancel={() => setCategoryToDelete(null)}
+        onConfirm={() => {
+          if (categoryToDelete) deleteMutation.mutate(categoryToDelete.id);
+        }}
+      />
     </>
   );
 }

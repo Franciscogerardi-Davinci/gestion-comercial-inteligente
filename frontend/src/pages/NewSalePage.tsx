@@ -1,8 +1,8 @@
-import { Add, Delete } from '@mui/icons-material';
+import { Add, Delete, ReceiptLong, ShoppingCartCheckout } from '@mui/icons-material';
 import {
   Alert,
+  Box,
   Button,
-  CircularProgress,
   FormControl,
   IconButton,
   InputLabel,
@@ -18,7 +18,9 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { LoadingState } from '../components/LoadingState';
 import { PageHeader } from '../components/PageHeader';
+import { useNotifications } from '../features/notifications/useNotifications';
 import { getProducts } from '../features/products/productsApi';
 import { createSale } from '../features/sales/salesApi';
 
@@ -32,6 +34,7 @@ const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: '
 export function NewSalePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { notify } = useNotifications();
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: getProducts });
   const [lines, setLines] = useState<SaleLine[]>([{ productId: '', quantity: '1' }]);
   const [discount, setDiscount] = useState('0');
@@ -51,6 +54,7 @@ export function NewSalePage() {
   const saleMutation = useMutation({
     mutationFn: createSale,
     onSuccess: async (sale) => {
+      notify('Venta confirmada y stock actualizado correctamente.');
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['products'] }),
         queryClient.invalidateQueries({ queryKey: ['sales'] }),
@@ -58,7 +62,11 @@ export function NewSalePage() {
       ]);
       navigate(`/sales/${sale.id}`, { replace: true });
     },
-    onError: (error) => setFormError(getApiErrorMessage(error)),
+    onError: (error) => {
+      const message = getApiErrorMessage(error);
+      setFormError(message);
+      notify(message, 'error');
+    },
   });
 
   const submit = () => {
@@ -100,20 +108,28 @@ export function NewSalePage() {
     });
   };
 
-  if (productsQuery.isLoading) return <CircularProgress />;
+  if (productsQuery.isLoading) return <LoadingState message="Cargando productos disponibles..." />;
   if (productsQuery.isError)
     return <Alert severity="error">{getApiErrorMessage(productsQuery.error)}</Alert>;
 
   return (
     <>
       <PageHeader title="Nueva venta" description="Seleccione productos y cantidades." />
-      <Stack spacing={2}>
+      <Stack spacing={3}>
         {formError && <Alert severity="error">{formError}</Alert>}
         {lines.map((line, index) => {
           const product = productsById.get(line.productId);
           const exceedsStock = product && Number(line.quantity) > Number(product.currentStock);
           return (
-            <Paper key={index} sx={{ p: 2 }}>
+            <Paper
+              key={index}
+              sx={{
+                p: 2,
+                borderColor: exceedsStock ? 'error.light' : 'divider',
+                transition: 'border-color 150ms ease, box-shadow 150ms ease',
+                '&:hover': { boxShadow: 2 },
+              }}
+            >
               <Stack
                 direction={{ xs: 'column', md: 'row' }}
                 spacing={2}
@@ -158,7 +174,7 @@ export function NewSalePage() {
                     )
                   }
                 />
-                <Typography sx={{ minWidth: 140, textAlign: 'right' }}>
+                <Typography sx={{ minWidth: 140, textAlign: 'right', fontWeight: 750 }}>
                   {currency.format(
                     product ? Number(product.salePrice) * Number(line.quantity || 0) : 0,
                   )}
@@ -177,14 +193,36 @@ export function NewSalePage() {
           );
         })}
         <Button
+          variant="outlined"
           startIcon={<Add />}
           onClick={() => setLines((current) => [...current, { productId: '', quantity: '1' }])}
           sx={{ alignSelf: 'flex-start' }}
         >
           Agregar producto
         </Button>
-        <Paper sx={{ p: 3 }}>
-          <Stack spacing={2}>
+        <Paper sx={{ p: { xs: 2.5, md: 3.5 }, bgcolor: '#F9FBFD' }}>
+          <Stack spacing={2.5}>
+            <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  width: 42,
+                  height: 42,
+                  placeItems: 'center',
+                  borderRadius: 2.5,
+                  color: 'primary.main',
+                  bgcolor: 'rgba(49,87,164,0.09)',
+                }}
+              >
+                <ReceiptLong />
+              </Box>
+              <Box>
+                <Typography variant="h6">Resumen de la venta</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Revise los importes antes de confirmar.
+                </Typography>
+              </Box>
+            </Stack>
             <TextField
               label="Notas"
               multiline
@@ -198,11 +236,29 @@ export function NewSalePage() {
               value={discount}
               onChange={(e) => setDiscount(e.target.value)}
             />
-            <Typography>Subtotal: {currency.format(subtotal)}</Typography>
-            <Typography variant="h5">Total: {currency.format(total)}</Typography>
+            <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography color="text.secondary">Subtotal</Typography>
+              <Typography sx={{ fontWeight: 700 }}>{currency.format(subtotal)}</Typography>
+            </Stack>
+            <Stack
+              direction="row"
+              sx={{
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                pt: 2,
+                borderTop: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <Typography variant="h6">Total</Typography>
+              <Typography variant="h4" color="primary.main">
+                {currency.format(total)}
+              </Typography>
+            </Stack>
             <Button
               variant="contained"
               size="large"
+              startIcon={<ShoppingCartCheckout />}
               disabled={saleMutation.isPending}
               onClick={submit}
             >
