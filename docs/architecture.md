@@ -45,6 +45,11 @@ actualiza `Product.currentStock` y crea `StockMovement` dentro de una misma
 transaccion, con control de concurrencia optimista y rechazo de stock negativo.
 Productos y categorias utilizan bajas logicas.
 
+Las ventas se confirman de forma atomica: los precios y costos se copian a
+`SaleItem`, se descuenta stock y se generan movimientos `OUT`. La anulacion
+conserva la venta, cambia su estado y genera movimientos `IN` compensatorios.
+Los gastos usan baja logica para no alterar futuros reportes historicos.
+
 ## Limites de esta fase
 
 No se incluyen refresh tokens, recuperacion de contrasena, operaciones CRUD

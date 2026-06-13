@@ -198,6 +198,61 @@ transaccion.
 Las bajas de productos y categorias son logicas mediante `isActive=false`. Una
 categoria con productos activos no puede desactivarse.
 
+## Ventas y gastos
+
+### Endpoints de ventas
+
+| Metodo | Endpoint                   | Descripcion                              |
+| ------ | -------------------------- | ---------------------------------------- |
+| GET    | `/api/v1/sales`            | Lista ventas del comercio.               |
+| GET    | `/api/v1/sales/:id`        | Obtiene una venta con sus items.         |
+| POST   | `/api/v1/sales`            | Confirma una venta y descuenta stock.    |
+| POST   | `/api/v1/sales/:id/cancel` | Anula la venta y restaura todo el stock. |
+
+La creacion recibe productos y cantidades. Los precios, costos, subtotal y total
+se calculan en el backend. `SaleItem` conserva el nombre, SKU, precio y costo
+historicos. La venta, sus items, la actualizacion de stock y los movimientos
+`OUT` se guardan dentro de una misma transaccion.
+
+Una anulacion no elimina la venta: cambia su estado a `CANCELLED`, restaura el
+stock y genera movimientos compensatorios `IN`.
+
+Ejemplo:
+
+```json
+{
+  "items": [
+    {
+      "productId": "UUID_DEL_PRODUCTO",
+      "quantity": 2
+    }
+  ],
+  "discount": 0,
+  "notes": "Venta de mostrador"
+}
+```
+
+### Endpoints de gastos
+
+| Metodo | Endpoint               | Descripcion                        |
+| ------ | ---------------------- | ---------------------------------- |
+| GET    | `/api/v1/expenses`     | Lista y filtra gastos activos.     |
+| GET    | `/api/v1/expenses/:id` | Obtiene un gasto.                  |
+| POST   | `/api/v1/expenses`     | Crea un gasto.                     |
+| PUT    | `/api/v1/expenses/:id` | Actualiza un gasto.                |
+| DELETE | `/api/v1/expenses/:id` | Realiza una baja logica del gasto. |
+
+El listado acepta `dateFrom`, `dateTo` y `category` como query parameters.
+
+### Probar la fase
+
+1. Ejecutar `npm run dev` e iniciar sesion.
+2. Abrir `Ventas` y seleccionar `Nueva venta`.
+3. Agregar productos y confirmar que las cantidades no superen el stock.
+4. Confirmar la venta y verificar el descuento en `Productos` y `Stock`.
+5. Abrir el detalle de la venta y anularla para restaurar las existencias.
+6. Abrir `Gastos` para crear, filtrar, editar y eliminar registros.
+
 ## Scripts
 
 - `npm run dev`: inicia backend y frontend en paralelo.
@@ -213,7 +268,7 @@ categoria con productos activos no puede desactivarse.
 
 ## Alcance de la fase
 
-Incluye registro, login, consulta de sesion, logout simple, roles `ADMIN` y
-`USER`, rutas protegidas y pantallas basicas de autenticacion. No incluye
-refresh tokens, recuperacion de contrasena ni reglas comerciales. Consulte
+Incluye autenticacion, productos, categorias, inventario, ventas confirmadas y
+anulables, y gestion de gastos. No incluye refresh tokens, clientes, medios de
+pago, facturacion fiscal ni reportes. Consulte
 [`docs/architecture.md`](docs/architecture.md) para conocer las decisiones.

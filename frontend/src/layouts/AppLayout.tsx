@@ -1,4 +1,13 @@
-import { AccountCircle, Category, Home, Inventory2, Logout, SwapVert } from '@mui/icons-material';
+import {
+  AccountCircle,
+  Category,
+  Home,
+  Inventory2,
+  Logout,
+  Payments,
+  PointOfSale,
+  SwapVert,
+} from '@mui/icons-material';
 import {
   AppBar,
   Box,
@@ -56,6 +65,12 @@ export function AppLayout() {
             </Button>
             <Button component={RouterLink} to="/stock-movements" startIcon={<SwapVert />}>
               Stock
+            </Button>
+            <Button component={RouterLink} to="/sales" startIcon={<PointOfSale />}>
+              Ventas
+            </Button>
+            <Button component={RouterLink} to="/expenses" startIcon={<Payments />}>
+              Gastos
             </Button>
           </Stack>
         </Container>
