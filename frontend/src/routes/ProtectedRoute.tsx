@@ -1,0 +1,23 @@
+import { Box, CircularProgress } from '@mui/material';
+import { Navigate, Outlet, useLocation } from 'react-router';
+
+import { useAuth } from '../features/auth/useAuth';
+
+export function ProtectedRoute() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
+        <CircularProgress aria-label="Restaurando sesion" />
+      </Box>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  return <Outlet />;
+}

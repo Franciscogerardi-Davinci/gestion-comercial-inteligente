@@ -18,8 +18,8 @@ Cada modulo de `backend/src/modules` puede incorporar progresivamente:
 - tipos propios.
 
 La infraestructura transversal vive en `config`, `middlewares`, `shared` e
-`infrastructure`. En la fase inicial solo se configura el arranque y un endpoint
-tecnico de salud.
+`infrastructure`. El modulo `auth` implementa sesiones JWT sin refresh tokens,
+hash bcrypt y autorizacion por roles.
 
 ## Frontend
 
@@ -42,5 +42,6 @@ PostgreSQL.
 
 ## Limites de esta fase
 
-No se incluyen autenticacion funcional, permisos, operaciones CRUD, reglas de
-stock, reportes, pruebas automatizadas ni pantallas de gestion.
+No se incluyen refresh tokens, recuperacion de contrasena, operaciones CRUD
+comerciales, reglas de stock, reportes, pruebas automatizadas ni pantallas de
+gestion.

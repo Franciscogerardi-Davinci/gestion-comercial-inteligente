@@ -3,8 +3,8 @@
 Monorepo inicial para un sistema orientado a pequenos y medianos comercios.
 
 Esta primera fase contiene la arquitectura base, las dependencias, la
-configuracion de desarrollo y el modelo inicial de datos. Todavia no incluye
-logica de negocio ni pantallas funcionales.
+configuracion de desarrollo, el modelo inicial de datos y autenticacion JWT.
+Todavia no incluye logica comercial.
 
 ## Requisitos
 
@@ -101,6 +101,60 @@ Ambos proyectos:
 npm run dev
 ```
 
+## Autenticacion
+
+La API expone los siguientes endpoints:
+
+| Metodo | Endpoint                | Protegido | Descripcion                      |
+| ------ | ----------------------- | --------- | -------------------------------- |
+| POST   | `/api/v1/auth/register` | No        | Crea un comercio y usuario USER. |
+| POST   | `/api/v1/auth/login`    | No        | Devuelve un JWT y el usuario.    |
+| GET    | `/api/v1/auth/me`       | Si        | Devuelve el usuario autenticado. |
+| POST   | `/api/v1/auth/logout`   | Si        | Confirma el cierre de sesion.    |
+
+Las rutas protegidas reciben el token mediante:
+
+```http
+Authorization: Bearer <JWT>
+```
+
+El logout es stateless: no revoca el JWT en el servidor porque esta fase no
+incluye refresh tokens ni lista de revocacion. El frontend elimina el token
+guardado en `localStorage`, una solucion deliberadamente simple para desarrollo.
+
+### Usuario demo
+
+- Correo: `admin@comercio-demo.local`
+- Rol: `ADMIN`
+- Contrasena: el valor local de `SEED_ADMIN_PASSWORD` en `backend/.env`
+
+La contrasena no se documenta ni se incorpora al repositorio.
+
+### Probar el login
+
+1. Iniciar backend y frontend:
+
+   ```bash
+   npm run dev
+   ```
+
+2. Abrir `http://localhost:5173/login`.
+3. Ingresar el correo demo y la contrasena configurada en
+   `SEED_ADMIN_PASSWORD`.
+4. Al autenticar, la aplicacion redirige a la ruta protegida `/`.
+
+Ejemplo de registro:
+
+```json
+{
+  "businessName": "Mi Comercio",
+  "firstName": "Nombre",
+  "lastName": "Apellido",
+  "email": "usuario@example.com",
+  "password": "una-contrasena-segura"
+}
+```
+
 ## Scripts
 
 - `npm run dev`: inicia backend y frontend en paralelo.
@@ -116,7 +170,7 @@ npm run dev
 
 ## Alcance de la fase
 
-Incluye autenticacion JWT como dependencia y estructura, pero no implementa
-registro, login, refresh tokens ni reglas comerciales. Consulte
-[`docs/architecture.md`](docs/architecture.md) para conocer las decisiones
-iniciales.
+Incluye registro, login, consulta de sesion, logout simple, roles `ADMIN` y
+`USER`, rutas protegidas y pantallas basicas de autenticacion. No incluye
+refresh tokens, recuperacion de contrasena ni reglas comerciales. Consulte
+[`docs/architecture.md`](docs/architecture.md) para conocer las decisiones.
