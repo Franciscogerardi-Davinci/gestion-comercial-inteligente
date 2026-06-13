@@ -1,0 +1,33 @@
+{
+  "name": "gestion-comercial-inteligente",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run dev --workspace backend",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prisma:generate": "npm run prisma:generate --workspace backend",
+    "prisma:validate": "npm run prisma:validate --workspace backend",
+    "prisma:migrate": "npm run prisma:migrate --workspace backend",
+    "prisma:studio": "npm run prisma:studio --workspace backend"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "concurrently": "^10.0.3",
+    "eslint": "^10.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "globals": "^17.6.0",
+    "prettier": "^3.8.4",
+    "typescript-eslint": "^8.61.0"
+  }
+}
