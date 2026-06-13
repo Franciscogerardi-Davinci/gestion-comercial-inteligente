@@ -155,6 +155,49 @@ Ejemplo de registro:
 }
 ```
 
+## Productos, categorias y stock
+
+Todas las rutas de esta seccion requieren un JWT y filtran los datos mediante el
+`businessId` de la sesion.
+
+### Endpoints
+
+| Metodo | Endpoint                  | Descripcion                        |
+| ------ | ------------------------- | ---------------------------------- |
+| GET    | `/api/v1/categories`      | Lista categorias activas.          |
+| POST   | `/api/v1/categories`      | Crea una categoria.                |
+| PUT    | `/api/v1/categories/:id`  | Actualiza una categoria.           |
+| DELETE | `/api/v1/categories/:id`  | Desactiva una categoria sin items. |
+| GET    | `/api/v1/products`        | Lista productos activos.           |
+| GET    | `/api/v1/products/:id`    | Obtiene un producto.               |
+| POST   | `/api/v1/products`        | Crea un producto con stock cero.   |
+| PUT    | `/api/v1/products/:id`    | Actualiza los datos del producto.  |
+| DELETE | `/api/v1/products/:id`    | Desactiva el producto.             |
+| GET    | `/api/v1/stock-movements` | Lista los ultimos 200 movimientos. |
+| POST   | `/api/v1/stock-movements` | Registra y aplica un movimiento.   |
+
+Los tipos de movimiento son:
+
+- `IN`: suma una cantidad positiva.
+- `OUT`: resta una cantidad positiva.
+- `ADJUSTMENT`: aplica una variacion positiva o negativa.
+
+La API rechaza cualquier movimiento que deje `currentStock` por debajo de cero.
+La actualizacion del producto y la creacion del movimiento ocurren en una misma
+transaccion.
+
+### Probar la fase
+
+1. Ejecutar `npm run dev`.
+2. Iniciar sesion en `http://localhost:5173/login`.
+3. Abrir `Categorias` y crear una categoria.
+4. Abrir `Productos` y crear un producto. El stock inicial sera cero.
+5. Abrir `Stock` y registrar una entrada.
+6. Verificar que el stock actualizado aparezca en la pantalla de productos.
+
+Las bajas de productos y categorias son logicas mediante `isActive=false`. Una
+categoria con productos activos no puede desactivarse.
+
 ## Scripts
 
 - `npm run dev`: inicia backend y frontend en paralelo.

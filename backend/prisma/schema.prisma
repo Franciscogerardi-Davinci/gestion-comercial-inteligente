@@ -18,12 +18,9 @@ enum SaleStatus {
 }
 
 enum StockMovementType {
-  INITIAL
-  PURCHASE
-  SALE
-  RETURN
+  IN
+  OUT
   ADJUSTMENT
-  CANCELLATION
 }
 
 model Business {

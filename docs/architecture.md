@@ -40,6 +40,11 @@ El proyecto utiliza la configuracion de Prisma 7: `prisma.config.ts` obtiene la
 URL de conexion desde el entorno y Prisma Client usa el adaptador oficial de
 PostgreSQL.
 
+Los movimientos de stock son la evidencia historica de cada cambio. La API
+actualiza `Product.currentStock` y crea `StockMovement` dentro de una misma
+transaccion, con control de concurrencia optimista y rechazo de stock negativo.
+Productos y categorias utilizan bajas logicas.
+
 ## Limites de esta fase
 
 No se incluyen refresh tokens, recuperacion de contrasena, operaciones CRUD
