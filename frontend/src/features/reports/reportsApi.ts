@@ -1,6 +1,8 @@
+import axios from 'axios';
+
 import { httpClient } from '../../api/httpClient';
-import type { ApiSuccess } from '../../types/auth';
-import type { ExpensesReport, ProfitReport, SalesReport } from '../../types/reports';
+import type { ApiErrorResponse, ApiSuccess } from '../../types/auth';
+import type { ExpensesReport, SalesReport } from '../../types/reports';
 
 export interface ReportFilters {
   dateFrom: string;
@@ -22,23 +24,30 @@ export async function getExpensesReport(filters: ReportFilters) {
   return response.data.data.report;
 }
 
-export async function getProfitReport(filters: ReportFilters) {
-  const response = await httpClient.get<ApiSuccess<{ report: ProfitReport }>>(
-    '/v1/reports/profit',
-    { params: filters },
-  );
-  return response.data.data.report;
-}
-
 export async function downloadReport(
   type: 'sales' | 'expenses',
   format: 'pdf' | 'excel',
   filters: ReportFilters,
 ) {
-  const response = await httpClient.get<Blob>(`/v1/reports/${type}/export/${format}`, {
-    params: filters,
-    responseType: 'blob',
-  });
+  let response;
+  try {
+    response = await httpClient.get<Blob>(`/v1/reports/${type}/export/${format}`, {
+      params: filters,
+      responseType: 'blob',
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
+      try {
+        const body = JSON.parse(await error.response.data.text()) as ApiErrorResponse;
+        throw new Error(body.error.message, { cause: error });
+      } catch (parseError) {
+        if (parseError instanceof SyntaxError) throw error;
+        throw parseError;
+      }
+    }
+    throw error;
+  }
+
   const extension = format === 'excel' ? 'xlsx' : 'pdf';
   const url = URL.createObjectURL(response.data);
   const link = document.createElement('a');

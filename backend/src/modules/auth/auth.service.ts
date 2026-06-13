@@ -66,7 +66,7 @@ export async function register(input: RegisterInput) {
   });
 
   if (existingUser) {
-    throw new AppError(409, 'EMAIL_IN_USE', 'El correo electronico ya esta registrado.');
+    throw new AppError(409, 'EMAIL_IN_USE', 'El correo electrónico ya está registrado.');
   }
 
   const passwordHash = await bcrypt.hash(input.password, 12);
@@ -104,7 +104,7 @@ export async function login(input: LoginInput) {
   });
 
   if (!userWithPassword || !(await bcrypt.compare(input.password, userWithPassword.passwordHash))) {
-    throw new AppError(401, 'INVALID_CREDENTIALS', 'Correo electronico o contrasena incorrectos.');
+    throw new AppError(401, 'INVALID_CREDENTIALS', 'Correo electrónico o contraseña incorrectos.');
   }
 
   if (!userWithPassword.isActive) {
@@ -124,7 +124,7 @@ export async function getAuthenticatedUser(userId: string) {
   });
 
   if (!user || !user.isActive) {
-    throw new AppError(401, 'INVALID_SESSION', 'La sesion ya no es valida.');
+    throw new AppError(401, 'INVALID_SESSION', 'La sesión ya no es válida.');
   }
 
   return toPublicUser(user);

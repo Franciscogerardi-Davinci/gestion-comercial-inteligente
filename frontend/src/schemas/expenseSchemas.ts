@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
 export const expenseFormSchema = z.object({
-  category: z.string().trim().min(2, 'Ingrese una categoria.').max(100),
-  description: z.string().trim().min(2, 'Ingrese una descripcion.').max(500),
+  category: z.string().trim().min(2, 'Ingrese una categoría.').max(100),
+  description: z.string().trim().min(2, 'Ingrese una descripción.').max(500),
   amount: z
     .string()
     .trim()

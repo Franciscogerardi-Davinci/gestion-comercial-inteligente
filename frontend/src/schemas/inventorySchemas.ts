@@ -27,7 +27,7 @@ export const productFormSchema = z.object({
       (value) => value === '' || (Number.isFinite(Number(value)) && Number(value) >= 0),
       'El costo debe ser un numero no negativo.',
     ),
-  minimumStock: decimalString('el stock minimo'),
+  minimumStock: decimalString('el stock mínimo'),
 });
 
 export const stockMovementFormSchema = z

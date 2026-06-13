@@ -10,7 +10,7 @@ export function ProtectedRoute() {
   if (isLoading) {
     return (
       <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
-        <CircularProgress aria-label="Restaurando sesion" />
+        <CircularProgress aria-label="Restaurando sesión" />
       </Box>
     );
   }

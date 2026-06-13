@@ -25,6 +25,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { EmptyTableRow } from '../components/EmptyTableRow';
 import { PageHeader } from '../components/PageHeader';
 import {
   createCategory,
@@ -86,9 +87,9 @@ export function CategoriesPage() {
   return (
     <>
       <PageHeader
-        title="Categorias"
-        description="Organice el catalogo de productos."
-        actionLabel="Nueva categoria"
+        title="Categorías"
+        description="Organice el catálogo de productos."
+        actionLabel="Nueva categoría"
         actionIcon={<Add />}
         onAction={openCreate}
       />
@@ -107,12 +108,15 @@ export function CategoriesPage() {
             <TableHead>
               <TableRow>
                 <TableCell>Nombre</TableCell>
-                <TableCell>Descripcion</TableCell>
+                <TableCell>Descripción</TableCell>
                 <TableCell align="right">Productos</TableCell>
                 <TableCell align="right">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
+              {categoriesQuery.data?.length === 0 && (
+                <EmptyTableRow colSpan={4} message="Todavía no hay categorías registradas." />
+              )}
               {categoriesQuery.data?.map((category) => (
                 <TableRow key={category.id} hover>
                   <TableCell>{category.name}</TableCell>
@@ -128,7 +132,7 @@ export function CategoriesPage() {
                       <IconButton
                         color="error"
                         onClick={() => {
-                          if (window.confirm(`¿Desactivar la categoria "${category.name}"?`)) {
+                          if (window.confirm(`¿Desactivar la categoría "${category.name}"?`)) {
                             deleteMutation.mutate(category.id);
                           }
                         }}
@@ -146,7 +150,7 @@ export function CategoriesPage() {
 
       <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
         <Stack component="form" onSubmit={handleSubmit((values) => saveMutation.mutate(values))}>
-          <DialogTitle>{editing ? 'Editar categoria' : 'Nueva categoria'}</DialogTitle>
+          <DialogTitle>{editing ? 'Editar categoría' : 'Nueva categoría'}</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ pt: 1 }}>
               {saveMutation.isError && actionError && <Alert severity="error">{actionError}</Alert>}
@@ -157,7 +161,7 @@ export function CategoriesPage() {
                 {...register('name')}
               />
               <TextField
-                label="Descripcion"
+                label="Descripción"
                 multiline
                 rows={3}
                 error={Boolean(errors.description)}

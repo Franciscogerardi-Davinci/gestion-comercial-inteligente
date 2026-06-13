@@ -29,6 +29,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { EmptyTableRow } from '../components/EmptyTableRow';
 import { PageHeader } from '../components/PageHeader';
 import { getCategories } from '../features/categories/categoriesApi';
 import {
@@ -108,7 +109,7 @@ export function ProductsPage() {
     <>
       <PageHeader
         title="Productos"
-        description="Administre precios, categorias y niveles de stock."
+        description="Administre precios, categorías y niveles de stock."
         actionLabel="Nuevo producto"
         actionIcon={<Add />}
         onAction={() => {
@@ -133,15 +134,18 @@ export function ProductsPage() {
             <TableHead>
               <TableRow>
                 <TableCell>Producto</TableCell>
-                <TableCell>Categoria</TableCell>
+                <TableCell>Categoría</TableCell>
                 <TableCell>SKU</TableCell>
                 <TableCell align="right">Precio</TableCell>
                 <TableCell align="right">Stock</TableCell>
-                <TableCell align="right">Minimo</TableCell>
+                <TableCell align="right">Mínimo</TableCell>
                 <TableCell align="right">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
+              {productsQuery.data?.length === 0 && (
+                <EmptyTableRow colSpan={7} message="Todavía no hay productos registrados." />
+              )}
               {productsQuery.data?.map((product) => (
                 <TableRow key={product.id} hover>
                   <TableCell>{product.name}</TableCell>
@@ -236,9 +240,9 @@ function ProductDialog(props: ProductDialogProps) {
               control={props.control}
               render={({ field }) => (
                 <FormControl>
-                  <InputLabel>Categoria</InputLabel>
-                  <Select {...field} label="Categoria">
-                    <MenuItem value="">Sin categoria</MenuItem>
+                  <InputLabel>Categoría</InputLabel>
+                  <Select {...field} label="Categoría">
+                    <MenuItem value="">Sin categoría</MenuItem>
                     {props.categories.map((category) => (
                       <MenuItem key={category.id} value={category.id}>
                         {category.name}
@@ -248,10 +252,10 @@ function ProductDialog(props: ProductDialogProps) {
                 </FormControl>
               )}
             />
-            <TextField label="Descripcion" multiline rows={2} {...props.register('description')} />
+            <TextField label="Descripción" multiline rows={2} {...props.register('description')} />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField fullWidth label="SKU" {...props.register('sku')} />
-              <TextField fullWidth label="Codigo de barras" {...props.register('barcode')} />
+              <TextField fullWidth label="Código de barras" {...props.register('barcode')} />
             </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField
@@ -272,7 +276,7 @@ function ProductDialog(props: ProductDialogProps) {
               />
               <TextField
                 fullWidth
-                label="Stock minimo"
+                label="Stock mínimo"
                 type="number"
                 error={Boolean(props.errors.minimumStock)}
                 helperText={props.errors.minimumStock?.message}

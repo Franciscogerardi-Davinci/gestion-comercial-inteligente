@@ -19,7 +19,7 @@ export const login: RequestHandler = async (request, response) => {
   const { body } = loginSchema.parse({ body: request.body });
   const session = await authService.login(body);
 
-  sendSuccess(response, session, { message: 'Inicio de sesion correcto.' });
+  sendSuccess(response, session, { message: 'Inicio de sesión correcto.' });
 };
 
 export const me: RequestHandler = async (request, response) => {

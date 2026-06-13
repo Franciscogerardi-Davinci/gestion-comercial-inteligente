@@ -23,6 +23,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { EmptyTableRow } from '../components/EmptyTableRow';
 import { MetricCard } from '../components/MetricCard';
 import { PageHeader } from '../components/PageHeader';
 import { getDashboardSummary } from '../features/dashboard/dashboardApi';
@@ -62,7 +63,7 @@ export function HomePage() {
         }}
       >
         <MetricCard
-          label="Ventas del dia"
+          label="Ventas del día"
           value={currency.format(Number(indicators.salesToday))}
           icon={<PointOfSale color="primary" />}
         />
@@ -95,10 +96,13 @@ export function HomePage() {
               <TableCell>Producto</TableCell>
               <TableCell>SKU</TableCell>
               <TableCell align="right">Stock</TableCell>
-              <TableCell align="right">Minimo</TableCell>
+              <TableCell align="right">Mínimo</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
+            {dashboard.lowStockProducts.length === 0 && (
+              <EmptyTableRow colSpan={4} message="No hay productos con stock bajo." />
+            )}
             {dashboard.lowStockProducts.map((product) => (
               <TableRow key={product.id}>
                 <TableCell>{product.name}</TableCell>
@@ -119,7 +123,7 @@ export function HomePage() {
           mt: 3,
         }}
       >
-        <DashboardTable title="Ultimas ventas">
+        <DashboardTable title="Últimas ventas">
           <Table>
             <TableHead>
               <TableRow>
@@ -129,6 +133,9 @@ export function HomePage() {
               </TableRow>
             </TableHead>
             <TableBody>
+              {dashboard.latestSales.length === 0 && (
+                <EmptyTableRow colSpan={3} message="Todavía no hay ventas registradas." />
+              )}
               {dashboard.latestSales.map((sale) => (
                 <TableRow key={sale.id}>
                   <TableCell>{new Date(sale.createdAt).toLocaleString('es-AR')}</TableCell>
@@ -146,16 +153,19 @@ export function HomePage() {
           </Table>
         </DashboardTable>
 
-        <DashboardTable title="Ultimos gastos">
+        <DashboardTable title="Últimos gastos">
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell>Fecha</TableCell>
-                <TableCell>Categoria</TableCell>
+                <TableCell>Categoría</TableCell>
                 <TableCell align="right">Importe</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
+              {dashboard.latestExpenses.length === 0 && (
+                <EmptyTableRow colSpan={3} message="Todavía no hay gastos registrados." />
+              )}
               {dashboard.latestExpenses.map((expense) => (
                 <TableRow key={expense.id}>
                   <TableCell>{expense.expenseDate.slice(0, 10)}</TableCell>

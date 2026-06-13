@@ -6,7 +6,7 @@ export function AuthLayout() {
     <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center', p: 2 }}>
       <Container maxWidth="sm">
         <Typography variant="h4" component="h1" sx={{ textAlign: 'center' }} gutterBottom>
-          Gestion Comercial Inteligente
+          Gestión Comercial Inteligente
         </Typography>
         <Paper elevation={3} sx={{ p: { xs: 3, sm: 4 } }}>
           <Outlet />

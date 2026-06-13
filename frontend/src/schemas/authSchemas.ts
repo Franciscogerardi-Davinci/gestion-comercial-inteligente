@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const loginFormSchema = z.object({
   email: z.string().trim().email('Ingrese un correo valido.'),
-  password: z.string().min(1, 'Ingrese su contrasena.'),
+  password: z.string().min(1, 'Ingrese su contraseña.'),
 });
 
 export const registerFormSchema = z
@@ -15,7 +15,7 @@ export const registerFormSchema = z
     confirmPassword: z.string(),
   })
   .refine((values) => values.password === values.confirmPassword, {
-    message: 'Las contrasenas no coinciden.',
+    message: 'Las contraseñas no coinciden.',
     path: ['confirmPassword'],
   });
 

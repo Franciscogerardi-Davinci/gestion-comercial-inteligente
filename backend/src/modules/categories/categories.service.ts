@@ -23,6 +23,29 @@ export function listCategories(businessId: string) {
 }
 
 export async function createCategory(businessId: string, input: CategoryInput) {
+  const inactiveCategory = await prisma.category.findFirst({
+    where: { businessId, name: input.name, isActive: false },
+    select: { id: true },
+  });
+
+  if (inactiveCategory) {
+    return prisma.category.update({
+      where: { id: inactiveCategory.id },
+      data: {
+        description: input.description || null,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
+
   return prisma.category.create({
     data: {
       businessId,

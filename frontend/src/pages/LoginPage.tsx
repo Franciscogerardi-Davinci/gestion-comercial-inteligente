@@ -37,10 +37,10 @@ export function LoginPage() {
 
   return (
     <Stack component="form" spacing={2.5} onSubmit={onSubmit} noValidate>
-      <Typography variant="h5">Iniciar sesion</Typography>
+      <Typography variant="h5">Iniciar sesión</Typography>
       {serverError && <Alert severity="error">{serverError}</Alert>}
       <TextField
-        label="Correo electronico"
+        label="Correo electrónico"
         type="email"
         autoComplete="email"
         error={Boolean(errors.email)}
@@ -48,7 +48,7 @@ export function LoginPage() {
         {...register('email')}
       />
       <TextField
-        label="Contrasena"
+        label="Contraseña"
         type="password"
         autoComplete="current-password"
         error={Boolean(errors.password)}

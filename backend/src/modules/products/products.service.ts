@@ -96,7 +96,11 @@ export async function updateProduct(businessId: string, id: string, input: Produ
 export async function deleteProduct(businessId: string, id: string) {
   const result = await prisma.product.updateMany({
     where: { id, businessId, isActive: true },
-    data: { isActive: false },
+    data: {
+      isActive: false,
+      sku: null,
+      barcode: null,
+    },
   });
 
   if (result.count === 0) {

@@ -20,7 +20,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import { Link as RouterLink, Outlet, useNavigate } from 'react-router';
+import { NavLink, Outlet, useNavigate } from 'react-router';
 
 import { useAuth } from '../features/auth/useAuth';
 
@@ -38,13 +38,14 @@ export function AppLayout() {
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Gestion Comercial Inteligente
+            Gestión Comercial Inteligente
           </Typography>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             <Chip
               icon={<AccountCircle />}
               label={`${user?.firstName ?? ''} - ${user?.role ?? ''}`}
               color="default"
+              sx={{ display: { xs: 'none', sm: 'flex' } }}
             />
             <Button color="inherit" startIcon={<Logout />} onClick={handleLogout}>
               Salir
@@ -55,25 +56,55 @@ export function AppLayout() {
       <Paper square elevation={1}>
         <Container maxWidth="lg">
           <Stack direction="row" spacing={1} sx={{ py: 1, overflowX: 'auto' }}>
-            <Button component={RouterLink} to="/" startIcon={<Home />}>
+            <Button component={NavLink} to="/" end startIcon={<Home />} sx={navigationButtonSx}>
               Inicio
             </Button>
-            <Button component={RouterLink} to="/categories" startIcon={<Category />}>
-              Categorias
+            <Button
+              component={NavLink}
+              to="/categories"
+              startIcon={<Category />}
+              sx={navigationButtonSx}
+            >
+              Categorías
             </Button>
-            <Button component={RouterLink} to="/products" startIcon={<Inventory2 />}>
+            <Button
+              component={NavLink}
+              to="/products"
+              startIcon={<Inventory2 />}
+              sx={navigationButtonSx}
+            >
               Productos
             </Button>
-            <Button component={RouterLink} to="/stock-movements" startIcon={<SwapVert />}>
+            <Button
+              component={NavLink}
+              to="/stock-movements"
+              startIcon={<SwapVert />}
+              sx={navigationButtonSx}
+            >
               Stock
             </Button>
-            <Button component={RouterLink} to="/sales" startIcon={<PointOfSale />}>
+            <Button
+              component={NavLink}
+              to="/sales"
+              startIcon={<PointOfSale />}
+              sx={navigationButtonSx}
+            >
               Ventas
             </Button>
-            <Button component={RouterLink} to="/expenses" startIcon={<Payments />}>
+            <Button
+              component={NavLink}
+              to="/expenses"
+              startIcon={<Payments />}
+              sx={navigationButtonSx}
+            >
               Gastos
             </Button>
-            <Button component={RouterLink} to="/reports" startIcon={<Assessment />}>
+            <Button
+              component={NavLink}
+              to="/reports"
+              startIcon={<Assessment />}
+              sx={navigationButtonSx}
+            >
               Reportes
             </Button>
           </Stack>
@@ -85,3 +116,11 @@ export function AppLayout() {
     </Box>
   );
 }
+
+const navigationButtonSx = {
+  flexShrink: 0,
+  '&.active': {
+    bgcolor: 'action.selected',
+    color: 'primary.main',
+  },
+};

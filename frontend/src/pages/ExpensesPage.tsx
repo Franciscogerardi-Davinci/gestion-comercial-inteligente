@@ -25,6 +25,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { EmptyTableRow } from '../components/EmptyTableRow';
 import { PageHeader } from '../components/PageHeader';
 import {
   createExpense,
@@ -37,7 +38,7 @@ import { expenseFormSchema, type ExpenseFormValues } from '../schemas/expenseSch
 import type { Expense } from '../types/commerce';
 
 const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
-const today = new Date().toISOString().slice(0, 10);
+const today = formatLocalDate(new Date());
 
 export function ExpensesPage() {
   const queryClient = useQueryClient();
@@ -125,7 +126,7 @@ export function ExpensesPage() {
             slotProps={{ inputLabel: { shrink: true } }}
           />
           <TextField
-            label="Categoria"
+            label="Categoría"
             value={draftFilters.category ?? ''}
             onChange={(event) =>
               setDraftFilters((current) => ({ ...current, category: event.target.value }))
@@ -155,14 +156,20 @@ export function ExpensesPage() {
             <TableHead>
               <TableRow>
                 <TableCell>Fecha</TableCell>
-                <TableCell>Categoria</TableCell>
-                <TableCell>Descripcion</TableCell>
+                <TableCell>Categoría</TableCell>
+                <TableCell>Descripción</TableCell>
                 <TableCell>Usuario</TableCell>
                 <TableCell align="right">Importe</TableCell>
                 <TableCell align="right">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
+              {expensesQuery.data?.length === 0 && (
+                <EmptyTableRow
+                  colSpan={6}
+                  message="No hay gastos para los filtros seleccionados."
+                />
+              )}
               {expensesQuery.data?.map((expense) => (
                 <TableRow key={expense.id} hover>
                   <TableCell>{expense.expenseDate.slice(0, 10)}</TableCell>
@@ -204,13 +211,13 @@ export function ExpensesPage() {
             <Stack spacing={2} sx={{ pt: 1 }}>
               {saveMutation.isError && actionError && <Alert severity="error">{actionError}</Alert>}
               <TextField
-                label="Categoria"
+                label="Categoría"
                 error={Boolean(errors.category)}
                 helperText={errors.category?.message}
                 {...register('category')}
               />
               <TextField
-                label="Descripcion"
+                label="Descripción"
                 multiline
                 rows={3}
                 error={Boolean(errors.description)}
@@ -248,4 +255,11 @@ export function ExpensesPage() {
 
 function emptyExpenseForm(): ExpenseFormValues {
   return { category: '', description: '', amount: '', expenseDate: today };
+}
+
+function formatLocalDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }

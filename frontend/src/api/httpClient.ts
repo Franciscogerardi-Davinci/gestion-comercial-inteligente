@@ -19,3 +19,20 @@ httpClient.interceptors.request.use((config) => {
 
   return config;
 });
+
+httpClient.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 401 &&
+      authStorage.getToken() &&
+      window.location.pathname !== '/login'
+    ) {
+      authStorage.clearToken();
+      window.location.assign('/login');
+    }
+
+    return Promise.reject(error);
+  },
+);

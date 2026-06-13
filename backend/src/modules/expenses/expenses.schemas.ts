@@ -11,11 +11,16 @@ export const createExpenseSchema = z.object({ body: expenseBodySchema });
 export const updateExpenseSchema = z.object({ body: expenseBodySchema });
 
 export const listExpensesSchema = z.object({
-  query: z.object({
-    dateFrom: z.iso.date().optional(),
-    dateTo: z.iso.date().optional(),
-    category: z.string().trim().max(100).optional(),
-  }),
+  query: z
+    .object({
+      dateFrom: z.iso.date().optional(),
+      dateTo: z.iso.date().optional(),
+      category: z.string().trim().max(100).optional(),
+    })
+    .refine((value) => !value.dateFrom || !value.dateTo || value.dateFrom <= value.dateTo, {
+      message: 'La fecha desde no puede ser posterior a la fecha hasta.',
+      path: ['dateTo'],
+    }),
 });
 
 export type ExpenseInput = z.infer<typeof expenseBodySchema>;

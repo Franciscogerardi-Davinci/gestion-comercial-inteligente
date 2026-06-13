@@ -27,6 +27,7 @@ import { useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { EmptyTableRow } from '../components/EmptyTableRow';
 import { PageHeader } from '../components/PageHeader';
 import { createStockMovement, getStockMovements } from '../features/inventory/stockMovementsApi';
 import { getProducts } from '../features/products/productsApi';
@@ -110,6 +111,9 @@ export function StockMovementsPage() {
               </TableRow>
             </TableHead>
             <TableBody>
+              {movementsQuery.data?.length === 0 && (
+                <EmptyTableRow colSpan={8} message="Todavía no hay movimientos de stock." />
+              )}
               {movementsQuery.data?.map((movement) => (
                 <TableRow key={movement.id} hover>
                   <TableCell>{new Date(movement.createdAt).toLocaleString('es-AR')}</TableCell>
@@ -168,7 +172,7 @@ export function StockMovementsPage() {
                 )}
               />
               <TextField
-                label={movementType === 'ADJUSTMENT' ? 'Variacion (+/-)' : 'Cantidad'}
+                label={movementType === 'ADJUSTMENT' ? 'Variación (+/-)' : 'Cantidad'}
                 type="number"
                 error={Boolean(errors.quantity)}
                 helperText={

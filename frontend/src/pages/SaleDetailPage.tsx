@@ -81,7 +81,7 @@ export function SaleDetailPage() {
               onClick={() => {
                 if (
                   window.confirm(
-                    '¿Anular esta venta? El stock de todos los productos sera restaurado.',
+                    '¿Anular esta venta? El stock de todos los productos será restaurado.',
                   )
                 ) {
                   cancelMutation.mutate();
@@ -100,8 +100,8 @@ export function SaleDetailPage() {
               <TableCell>Producto</TableCell>
               <TableCell>SKU</TableCell>
               <TableCell align="right">Cantidad</TableCell>
-              <TableCell align="right">Precio historico</TableCell>
-              <TableCell align="right">Costo historico</TableCell>
+              <TableCell align="right">Precio histórico</TableCell>
+              <TableCell align="right">Costo histórico</TableCell>
               <TableCell align="right">Subtotal</TableCell>
             </TableRow>
           </TableHead>

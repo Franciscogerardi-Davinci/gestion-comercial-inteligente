@@ -72,7 +72,7 @@ export function RegisterPage() {
         />
       </Stack>
       <TextField
-        label="Correo electronico"
+        label="Correo electrónico"
         type="email"
         autoComplete="email"
         error={Boolean(errors.email)}
@@ -80,7 +80,7 @@ export function RegisterPage() {
         {...register('email')}
       />
       <TextField
-        label="Contrasena"
+        label="Contraseña"
         type="password"
         autoComplete="new-password"
         error={Boolean(errors.password)}
@@ -88,7 +88,7 @@ export function RegisterPage() {
         {...register('password')}
       />
       <TextField
-        label="Confirmar contrasena"
+        label="Confirmar contraseña"
         type="password"
         autoComplete="new-password"
         error={Boolean(errors.confirmPassword)}
@@ -101,7 +101,7 @@ export function RegisterPage() {
       <Typography color="text.secondary">
         ¿Ya tiene una cuenta?{' '}
         <Link component={RouterLink} to="/login">
-          Iniciar sesion
+          Iniciar sesión
         </Link>
       </Typography>
     </Stack>

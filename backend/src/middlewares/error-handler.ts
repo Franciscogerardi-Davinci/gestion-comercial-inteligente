@@ -20,7 +20,7 @@ export const errorHandler: ErrorRequestHandler = (error, _request, response, _ne
       error.issues,
     );
   } else if (error instanceof jsonwebtoken.TokenExpiredError) {
-    appError = new AppError(401, 'TOKEN_EXPIRED', 'La sesion ha expirado.');
+    appError = new AppError(401, 'TOKEN_EXPIRED', 'La sesión ha expirado.');
   } else if (error instanceof jsonwebtoken.JsonWebTokenError) {
     appError = new AppError(401, 'INVALID_TOKEN', 'El token de autenticacion no es valido.');
   } else if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {

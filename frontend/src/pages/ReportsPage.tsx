@@ -19,12 +19,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { EmptyTableRow } from '../components/EmptyTableRow';
 import { MetricCard } from '../components/MetricCard';
 import { PageHeader } from '../components/PageHeader';
 import {
   downloadReport,
   getExpensesReport,
-  getProfitReport,
   getSalesReport,
   type ReportFilters,
 } from '../features/reports/reportsApi';
@@ -32,10 +32,8 @@ import {
 const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
 const today = new Date();
 const initialFilters: ReportFilters = {
-  dateFrom: new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
-    .toISOString()
-    .slice(0, 10),
-  dateTo: today.toISOString().slice(0, 10),
+  dateFrom: formatLocalDate(new Date(today.getFullYear(), today.getMonth(), 1)),
+  dateTo: formatLocalDate(today),
 };
 
 export function ReportsPage() {
@@ -51,10 +49,6 @@ export function ReportsPage() {
     queryKey: ['reports', 'expenses', filters],
     queryFn: () => getExpensesReport(filters),
   });
-  const profitQuery = useQuery({
-    queryKey: ['reports', 'profit', filters],
-    queryFn: () => getProfitReport(filters),
-  });
 
   const handleDownload = async (type: 'sales' | 'expenses', format: 'pdf' | 'excel') => {
     const key = `${type}-${format}`;
@@ -69,14 +63,14 @@ export function ReportsPage() {
     }
   };
 
-  const isLoading = salesQuery.isLoading || expensesQuery.isLoading || profitQuery.isLoading;
-  const queryError = salesQuery.error ?? expensesQuery.error ?? profitQuery.error;
+  const isLoading = salesQuery.isLoading || expensesQuery.isLoading;
+  const queryError = salesQuery.error ?? expensesQuery.error;
 
   return (
     <>
       <PageHeader
         title="Reportes"
-        description="Analice ventas, costos historicos, gastos y ganancia estimada."
+        description="Analice ventas, costos históricos, gastos y ganancia estimada."
       />
       <Paper sx={{ p: 2, mb: 3 }}>
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
@@ -115,7 +109,7 @@ export function ReportsPage() {
       )}
       {isLoading ? (
         <CircularProgress />
-      ) : queryError || !profitQuery.data || !salesQuery.data || !expensesQuery.data ? (
+      ) : queryError || !salesQuery.data || !expensesQuery.data ? (
         <Alert severity="error">{getApiErrorMessage(queryError)}</Alert>
       ) : (
         <>
@@ -129,27 +123,30 @@ export function ReportsPage() {
           >
             <MetricCard
               label="Ventas"
-              value={currency.format(Number(profitQuery.data.salesTotal))}
+              value={currency.format(Number(salesQuery.data.summary.salesTotal))}
               icon={null}
             />
             <MetricCard
-              label="Costo historico"
-              value={currency.format(Number(profitQuery.data.historicalCost))}
+              label="Costo histórico"
+              value={currency.format(Number(salesQuery.data.summary.historicalCost))}
               icon={null}
             />
             <MetricCard
               label="Ganancia bruta"
-              value={currency.format(Number(profitQuery.data.grossProfit))}
+              value={currency.format(Number(salesQuery.data.summary.grossProfit))}
               icon={null}
             />
             <MetricCard
               label="Gastos"
-              value={currency.format(Number(profitQuery.data.expensesTotal))}
+              value={currency.format(Number(expensesQuery.data.summary.expensesTotal))}
               icon={null}
             />
             <MetricCard
               label="Ganancia estimada"
-              value={currency.format(Number(profitQuery.data.estimatedProfit))}
+              value={currency.format(
+                Number(salesQuery.data.summary.grossProfit) -
+                  Number(expensesQuery.data.summary.expensesTotal),
+              )}
               icon={null}
             />
           </Box>
@@ -187,6 +184,9 @@ export function ReportsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
+                {salesQuery.data.sales.length === 0 && (
+                  <EmptyTableRow colSpan={6} message="No hay ventas en el período seleccionado." />
+                )}
                 {salesQuery.data.sales.map((sale) => (
                   <TableRow key={sale.id}>
                     <TableCell>{new Date(sale.createdAt).toLocaleDateString('es-AR')}</TableCell>
@@ -228,12 +228,15 @@ export function ReportsPage() {
               <TableHead>
                 <TableRow>
                   <TableCell>Fecha</TableCell>
-                  <TableCell>Categoria</TableCell>
-                  <TableCell>Descripcion</TableCell>
+                  <TableCell>Categoría</TableCell>
+                  <TableCell>Descripción</TableCell>
                   <TableCell align="right">Importe</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
+                {expensesQuery.data.expenses.length === 0 && (
+                  <EmptyTableRow colSpan={4} message="No hay gastos en el período seleccionado." />
+                )}
                 {expensesQuery.data.expenses.map((expense) => (
                   <TableRow key={expense.id}>
                     <TableCell>{expense.expenseDate.slice(0, 10)}</TableCell>
@@ -249,6 +252,13 @@ export function ReportsPage() {
       )}
     </>
   );
+}
+
+function formatLocalDate(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function ReportSection({
