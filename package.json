@@ -14,10 +14,11 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prisma:generate": "npm run prisma:generate --workspace backend",
-    "prisma:validate": "npm run prisma:validate --workspace backend",
-    "prisma:migrate": "npm run prisma:migrate --workspace backend",
-    "prisma:studio": "npm run prisma:studio --workspace backend"
+    "prisma:generate": "npm exec --workspace backend -- prisma generate",
+    "prisma:validate": "npm exec --workspace backend -- prisma validate",
+    "prisma:migrate": "npm exec --workspace backend -- prisma migrate dev",
+    "prisma:seed": "npm exec --workspace backend -- prisma db seed",
+    "prisma:studio": "npm exec --workspace backend -- prisma studio"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

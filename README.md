@@ -36,7 +36,16 @@ logica de negocio ni pantallas funcionales.
    Copy-Item frontend/.env.example frontend/.env
    ```
 
-3. Ajustar `DATABASE_URL` en `backend/.env`.
+3. Completar `backend/.env` sin publicar ni versionar credenciales:
+
+   ```dotenv
+   DATABASE_URL="postgresql://postgres:<PASSWORD_URL_ENCODED>@localhost:5432/gestion_comercial?schema=public"
+   SEED_ADMIN_PASSWORD="<PASSWORD_ADMIN_DE_DESARROLLO>"
+   ```
+
+   Reemplace solamente los valores entre `<...>`. La contrasena de PostgreSQL
+   debe codificarse para URL si contiene caracteres reservados como `@`, `:`,
+   `/`, `?`, `#` o `%`. `backend/.env` esta excluido por `.gitignore`.
 
 4. Generar el cliente Prisma:
 
@@ -44,10 +53,27 @@ logica de negocio ni pantallas funcionales.
    npm run prisma:generate
    ```
 
-5. Crear la primera migracion cuando PostgreSQL este disponible:
+5. Crear y aplicar la primera migracion:
 
    ```bash
    npm run prisma:migrate -- --name init
+   ```
+
+6. Cargar los datos iniciales:
+
+   ```bash
+   npm run prisma:seed
+   ```
+
+   El seed es idempotente e incorpora un comercio de demostracion, un usuario
+   `ADMIN`, tres categorias, tres productos, dos gastos y sus movimientos de
+   stock iniciales. El correo del usuario es `admin@comercio-demo.local` y su
+   contrasena se toma exclusivamente de `SEED_ADMIN_PASSWORD`.
+
+7. Inspeccionar los datos:
+
+   ```bash
+   npm run prisma:studio
    ```
 
 ## Ejecucion
@@ -85,6 +111,7 @@ npm run dev
 - `npm run prisma:generate`: genera Prisma Client.
 - `npm run prisma:validate`: valida el esquema Prisma.
 - `npm run prisma:migrate -- --name <nombre>`: crea y aplica una migracion.
+- `npm run prisma:seed`: carga datos iniciales de desarrollo.
 - `npm run prisma:studio`: abre Prisma Studio.
 
 ## Alcance de la fase
