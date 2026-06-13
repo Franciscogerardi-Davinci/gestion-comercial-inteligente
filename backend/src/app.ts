@@ -6,9 +6,11 @@ import { errorHandler } from './middlewares/error-handler.js';
 import { notFound } from './middlewares/not-found.js';
 import { authRouter } from './modules/auth/auth.routes.js';
 import { categoriesRouter } from './modules/categories/categories.routes.js';
+import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 import { expensesRouter } from './modules/expenses/expenses.routes.js';
 import { stockMovementsRouter } from './modules/inventory/stock-movements.routes.js';
 import { productsRouter } from './modules/products/products.routes.js';
+import { reportsRouter } from './modules/reports/reports.routes.js';
 import { salesRouter } from './modules/sales/sales.routes.js';
 import { sendSuccess } from './shared/http/api-response.js';
 
@@ -31,6 +33,8 @@ app.use('/api/v1/products', productsRouter);
 app.use('/api/v1/stock-movements', stockMovementsRouter);
 app.use('/api/v1/sales', salesRouter);
 app.use('/api/v1/expenses', expensesRouter);
+app.use('/api/v1/dashboard', dashboardRouter);
+app.use('/api/v1/reports', reportsRouter);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -9,6 +9,7 @@ import { LoginPage } from '../pages/LoginPage';
 import { NewSalePage } from '../pages/NewSalePage';
 import { ProductsPage } from '../pages/ProductsPage';
 import { RegisterPage } from '../pages/RegisterPage';
+import { ReportsPage } from '../pages/ReportsPage';
 import { SaleDetailPage } from '../pages/SaleDetailPage';
 import { SalesPage } from '../pages/SalesPage';
 import { StockMovementsPage } from '../pages/StockMovementsPage';
@@ -34,6 +35,7 @@ export function AppRouter() {
           <Route path="/sales/new" element={<NewSalePage />} />
           <Route path="/sales/:id" element={<SaleDetailPage />} />
           <Route path="/expenses" element={<ExpensesPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

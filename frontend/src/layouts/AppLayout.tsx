@@ -1,5 +1,6 @@
 import {
   AccountCircle,
+  Assessment,
   Category,
   Home,
   Inventory2,
@@ -71,6 +72,9 @@ export function AppLayout() {
             </Button>
             <Button component={RouterLink} to="/expenses" startIcon={<Payments />}>
               Gastos
+            </Button>
+            <Button component={RouterLink} to="/reports" startIcon={<Assessment />}>
+              Reportes
             </Button>
           </Stack>
         </Container>

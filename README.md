@@ -253,6 +253,57 @@ El listado acepta `dateFrom`, `dateTo` y `category` como query parameters.
 5. Abrir el detalle de la venta y anularla para restaurar las existencias.
 6. Abrir `Gastos` para crear, filtrar, editar y eliminar registros.
 
+## Dashboard y reportes
+
+### Dashboard
+
+`GET /api/v1/dashboard/summary` devuelve:
+
+- ventas confirmadas del dia y del mes;
+- gastos activos del mes;
+- ganancia estimada del mes;
+- cantidad de ventas confirmadas del mes;
+- productos cuyo stock actual es menor o igual al minimo;
+- las cinco ventas y gastos mas recientes.
+
+La pantalla principal consume este endpoint y presenta indicadores y tablas
+responsive.
+
+### Reportes
+
+| Metodo | Endpoint                                | Resultado            |
+| ------ | --------------------------------------- | -------------------- |
+| GET    | `/api/v1/reports/sales`                 | Reporte de ventas.   |
+| GET    | `/api/v1/reports/expenses`              | Reporte de gastos.   |
+| GET    | `/api/v1/reports/profit`                | Resumen de ganancia. |
+| GET    | `/api/v1/reports/sales/export/pdf`      | Ventas en PDF.       |
+| GET    | `/api/v1/reports/sales/export/excel`    | Ventas en XLSX.      |
+| GET    | `/api/v1/reports/expenses/export/pdf`   | Gastos en PDF.       |
+| GET    | `/api/v1/reports/expenses/export/excel` | Gastos en XLSX.      |
+
+Todos aceptan `dateFrom` y `dateTo` en formato `YYYY-MM-DD`. Si no se envian,
+se utiliza el mes actual.
+
+Los reportes de ventas solo incluyen ventas `CONFIRMED`. El costo se calcula
+con `SaleItem.unitCost`, por lo que no cambia si posteriormente se modifica el
+producto. Las formulas son:
+
+```text
+Ganancia bruta = ventas confirmadas - costos historicos
+Ganancia estimada = ganancia bruta - gastos activos
+```
+
+### Probar la fase
+
+1. Ejecutar `npm run dev` e iniciar sesion.
+2. La ruta `/` muestra el dashboard.
+3. Abrir `Reportes` desde la navegacion.
+4. Elegir un rango y aplicar los filtros.
+5. Descargar ventas y gastos en PDF o Excel.
+
+Las descargas se generan en el backend y requieren el mismo JWT que el resto de
+las rutas protegidas.
+
 ## Scripts
 
 - `npm run dev`: inicia backend y frontend en paralelo.

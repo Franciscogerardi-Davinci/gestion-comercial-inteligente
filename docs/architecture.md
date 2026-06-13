@@ -50,6 +50,12 @@ Las ventas se confirman de forma atomica: los precios y costos se copian a
 conserva la venta, cambia su estado y genera movimientos `IN` compensatorios.
 Los gastos usan baja logica para no alterar futuros reportes historicos.
 
+Dashboard y reportes reutilizan una unica capa de calculo. Solo las ventas
+`CONFIRMED` aportan ingresos y costos; los costos salen de los valores
+historicos de `SaleItem`. La ganancia estimada descuenta tambien los gastos
+activos del periodo. PDFKit genera PDF y ExcelJS genera archivos XLSX en memoria
+antes de enviarlos como descargas autenticadas.
+
 ## Limites de esta fase
 
 No se incluyen refresh tokens, recuperacion de contrasena, operaciones CRUD
