@@ -177,6 +177,104 @@ de base de datos.
 Los reportes aceptan `dateFrom` y `dateTo` en formato `YYYY-MM-DD`. No incluyen
 ventas anuladas y calculan costos con los valores históricos de `SaleItem`.
 
+## Despliegue
+
+La configuración propuesta usa Render para la API y PostgreSQL, y Vercel para
+la SPA. El repositorio fija Node.js 24 mediante `.node-version` y `engines`.
+
+### Backend y PostgreSQL en Render
+
+El archivo [`render.yaml`](render.yaml) define:
+
+- Un Web Service Node llamado `gestion-comercial-api`.
+- Una base PostgreSQL 18 llamada `gestion-comercial-db`.
+- Build con instalación reproducible, generación de Prisma Client y
+  compilación del backend.
+- Migraciones con `prisma migrate deploy` antes de iniciar el proceso.
+- Inicio con `npm run start --workspace backend`.
+- Health check en `/api/health`.
+- Generación automática de `JWT_SECRET` y conexión privada a PostgreSQL.
+
+Para desplegar:
+
+1. Publicar el repositorio en GitHub, GitLab o Bitbucket.
+2. En Render, elegir **New > Blueprint** y conectar el repositorio.
+3. Confirmar los recursos detectados desde `render.yaml`.
+4. Cuando Render solicite `CORS_ORIGIN`, ingresar el origen HTTPS exacto del
+   frontend, por ejemplo `https://mi-comercio.vercel.app`, sin barra final.
+5. Crear el Blueprint y esperar que finalicen build, migraciones y health
+   check.
+6. Verificar `https://<servicio>.onrender.com/api/health`.
+
+El plan `free` del Blueprint es adecuado para una demostración académica. Para
+un uso comercial real se recomienda seleccionar planes con persistencia,
+copias de seguridad y disponibilidad acordes a la carga.
+
+No ejecutar `prisma migrate dev` en producción. El seed tampoco se ejecuta
+automáticamente: si se necesitan datos demo, definir temporalmente
+`SEED_ADMIN_PASSWORD`, ejecutar `npm run prisma:seed` desde un entorno
+administrativo conectado a la base y luego retirar esa variable.
+
+En el plan gratuito, las migraciones forman parte del `startCommand` porque
+Render reserva `preDeployCommand` para Web Services pagos. Al pasar a un plan
+pago, se recomienda mover `npm run prisma:deploy` a `preDeployCommand` y dejar
+el inicio dedicado exclusivamente al servidor.
+
+### Frontend en Vercel
+
+1. Importar el mismo repositorio en Vercel.
+2. Configurar **Root Directory** como `frontend`.
+3. Seleccionar el preset **Vite**.
+4. Usar `npm run build` como Build Command y `dist` como Output Directory.
+5. Crear `VITE_API_URL` para Production con
+   `https://<servicio-render>.onrender.com/api`.
+6. Desplegar y comprobar el acceso directo a rutas como `/login` y
+   `/products`.
+
+[`frontend/vercel.json`](frontend/vercel.json) redirige las rutas de la SPA a
+`index.html`, evitando errores 404 al recargar una ruta de React Router.
+
+Las variables con prefijo `VITE_` son públicas y quedan incluidas en el bundle.
+Nunca deben contener contraseñas, tokens ni `DATABASE_URL`. Cuando cambie
+`VITE_API_URL`, es necesario volver a desplegar el frontend.
+
+### Variables de producción
+
+| Servicio | Variable              | Uso                                            |
+| -------- | --------------------- | ---------------------------------------------- |
+| Backend  | `NODE_ENV`            | Debe valer `production`.                       |
+| Backend  | `PORT`                | La asigna Render; no debe fijarse manualmente. |
+| Backend  | `DATABASE_URL`        | URL privada de PostgreSQL; es secreta.         |
+| Backend  | `JWT_SECRET`          | Secreto largo generado por Render.             |
+| Backend  | `JWT_EXPIRES_IN`      | Vigencia del JWT, por defecto `15m`.           |
+| Backend  | `CORS_ORIGIN`         | Origen HTTPS exacto del frontend.              |
+| Backend  | `APP_TIME_ZONE`       | `America/Argentina/Buenos_Aires`.              |
+| Seed     | `SEED_ADMIN_PASSWORD` | Solo para una carga manual de datos demo.      |
+| Frontend | `VITE_API_URL`        | URL pública de la API terminada en `/api`.     |
+
+La base debe estar en la misma región que el backend y el backend debe usar su
+URL interna. `DATABASE_URL` nunca se configura en Vercel ni se versiona. Para
+administración remota, usar la URL externa solo de manera temporal y respetar
+las opciones SSL indicadas por el proveedor. Prisma Studio no debe exponerse
+como servicio público.
+
+### Checklist de deploy
+
+- [ ] Los builds local y de CI finalizan sin errores.
+- [ ] `npm run prisma:validate` valida el esquema.
+- [ ] No hay archivos `.env`, credenciales ni URLs con contraseña versionados.
+- [ ] Render detecta PostgreSQL 18 y el Web Service desde `render.yaml`.
+- [ ] `DATABASE_URL` referencia la conexión privada de Render.
+- [ ] `JWT_SECRET` es único, largo y distinto de cualquier valor local.
+- [ ] Las migraciones de producción usan `npm run prisma:deploy`.
+- [ ] El health check `/api/health` responde correctamente.
+- [ ] `CORS_ORIGIN` coincide exactamente con el dominio de Vercel.
+- [ ] Vercel usa `frontend` como Root Directory.
+- [ ] `VITE_API_URL` apunta al backend HTTPS e incluye `/api`.
+- [ ] Login, navegación, venta, anulación y exportaciones se prueban en producción.
+- [ ] Se revisan logs, métricas, retención y copias de seguridad del proveedor.
+- [ ] Se documenta un procedimiento de restauración antes de usar datos reales.
+
 ## Scripts
 
 - `npm run dev`: inicia backend y frontend.
@@ -216,7 +314,7 @@ ventas anuladas y calculan costos con los valores históricos de `SaleItem`.
 - Auditoría avanzada.
 - API OpenAPI y documentación interactiva.
 - Tests automáticos de backend y frontend.
-- Despliegue, monitoreo y copias de seguridad automatizadas.
+- Monitoreo, alertas y copias de seguridad automatizadas.
 - Aplicación móvil.
 
 Las decisiones de arquitectura se documentan en
