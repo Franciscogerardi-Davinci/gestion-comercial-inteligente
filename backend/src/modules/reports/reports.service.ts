@@ -2,7 +2,7 @@ import { Prisma, SaleStatus } from '@prisma/client';
 
 import { prisma } from '../../infrastructure/database/prisma.js';
 import type { DateRangeInput } from '../../shared/schemas/date-range.schemas.js';
-import { resolveDateRange } from '../../shared/utils/date-range.js';
+import { resolveDateOnlyRange, resolveDateRange } from '../../shared/utils/date-range.js';
 
 const zero = () => new Prisma.Decimal(0);
 
@@ -64,7 +64,7 @@ export async function getSalesReport(businessId: string, input: DateRangeInput) 
 }
 
 export async function getExpensesReport(businessId: string, input: DateRangeInput) {
-  const range = resolveDateRange(input);
+  const range = resolveDateOnlyRange(input);
   const expenses = await prisma.expense.findMany({
     where: {
       businessId,

@@ -3,7 +3,6 @@ import { Add, Delete, Edit } from '@mui/icons-material';
 import {
   Alert,
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -29,6 +28,9 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { getApiErrorMessage } from '../api/apiError';
+import { ConfirmDialog } from '../components/ConfirmDialog';
+import { EmptyTableRow } from '../components/EmptyTableRow';
+import { LoadingState } from '../components/LoadingState';
 import { PageHeader } from '../components/PageHeader';
 import { getCategories } from '../features/categories/categoriesApi';
 import {
@@ -37,6 +39,7 @@ import {
   getProducts,
   updateProduct,
 } from '../features/products/productsApi';
+import { useNotifications } from '../features/notifications/useNotifications';
 import { productFormSchema, type ProductFormValues } from '../schemas/inventorySchemas';
 import type { Product } from '../types/inventory';
 
@@ -44,7 +47,9 @@ const currency = new Intl.NumberFormat('es-AR', { style: 'currency', currency: '
 
 export function ProductsPage() {
   const queryClient = useQueryClient();
+  const { notify } = useNotifications();
   const [editing, setEditing] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const productsQuery = useQuery({ queryKey: ['products'], queryFn: getProducts });
@@ -75,17 +80,30 @@ export function ProductsPage() {
       return editing ? updateProduct(editing.id, input) : createProduct(input);
     },
     onSuccess: async () => {
+      notify(editing ? 'Producto actualizado correctamente.' : 'Producto creado correctamente.');
       await queryClient.invalidateQueries({ queryKey: ['products'] });
       setDialogOpen(false);
       setEditing(null);
     },
-    onError: (error) => setActionError(getApiErrorMessage(error)),
+    onError: (error) => {
+      const message = getApiErrorMessage(error);
+      setActionError(message);
+      notify(message, 'error');
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteProduct,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
-    onError: (error) => setActionError(getApiErrorMessage(error)),
+    onSuccess: async () => {
+      notify('Producto desactivado correctamente.');
+      setProductToDelete(null);
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+    },
+    onError: (error) => {
+      const message = getApiErrorMessage(error);
+      setActionError(message);
+      notify(message, 'error');
+    },
   });
 
   const openEdit = (product: Product) => {
@@ -108,7 +126,7 @@ export function ProductsPage() {
     <>
       <PageHeader
         title="Productos"
-        description="Administre precios, categorias y niveles de stock."
+        description="Administre precios, categorías y niveles de stock."
         actionLabel="Nuevo producto"
         actionIcon={<Add />}
         onAction={() => {
@@ -124,7 +142,7 @@ export function ProductsPage() {
         </Alert>
       )}
       {productsQuery.isLoading ? (
-        <CircularProgress />
+        <LoadingState message="Cargando productos..." />
       ) : productsQuery.isError ? (
         <Alert severity="error">{getApiErrorMessage(productsQuery.error)}</Alert>
       ) : (
@@ -133,15 +151,18 @@ export function ProductsPage() {
             <TableHead>
               <TableRow>
                 <TableCell>Producto</TableCell>
-                <TableCell>Categoria</TableCell>
+                <TableCell>Categoría</TableCell>
                 <TableCell>SKU</TableCell>
                 <TableCell align="right">Precio</TableCell>
                 <TableCell align="right">Stock</TableCell>
-                <TableCell align="right">Minimo</TableCell>
+                <TableCell align="right">Mínimo</TableCell>
                 <TableCell align="right">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
+              {productsQuery.data?.length === 0 && (
+                <EmptyTableRow colSpan={7} message="Todavía no hay productos registrados." />
+              )}
               {productsQuery.data?.map((product) => (
                 <TableRow key={product.id} hover>
                   <TableCell>{product.name}</TableCell>
@@ -157,14 +178,7 @@ export function ProductsPage() {
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Desactivar">
-                      <IconButton
-                        color="error"
-                        onClick={() => {
-                          if (window.confirm(`¿Desactivar el producto "${product.name}"?`)) {
-                            deleteMutation.mutate(product.id);
-                          }
-                        }}
-                      >
+                      <IconButton color="error" onClick={() => setProductToDelete(product)}>
                         <Delete />
                       </IconButton>
                     </Tooltip>
@@ -186,6 +200,17 @@ export function ProductsPage() {
         error={saveMutation.isError ? actionError : null}
         onClose={() => setDialogOpen(false)}
         onSubmit={handleSubmit((values) => saveMutation.mutate(values))}
+      />
+      <ConfirmDialog
+        open={Boolean(productToDelete)}
+        title="Desactivar producto"
+        description={`El producto "${productToDelete?.name ?? ''}" dejará de aparecer en ventas y listados activos. Su historial se conservará.`}
+        confirmLabel="Desactivar"
+        pending={deleteMutation.isPending}
+        onCancel={() => setProductToDelete(null)}
+        onConfirm={() => {
+          if (productToDelete) deleteMutation.mutate(productToDelete.id);
+        }}
       />
     </>
   );
@@ -236,9 +261,9 @@ function ProductDialog(props: ProductDialogProps) {
               control={props.control}
               render={({ field }) => (
                 <FormControl>
-                  <InputLabel>Categoria</InputLabel>
-                  <Select {...field} label="Categoria">
-                    <MenuItem value="">Sin categoria</MenuItem>
+                  <InputLabel>Categoría</InputLabel>
+                  <Select {...field} label="Categoría">
+                    <MenuItem value="">Sin categoría</MenuItem>
                     {props.categories.map((category) => (
                       <MenuItem key={category.id} value={category.id}>
                         {category.name}
@@ -248,10 +273,10 @@ function ProductDialog(props: ProductDialogProps) {
                 </FormControl>
               )}
             />
-            <TextField label="Descripcion" multiline rows={2} {...props.register('description')} />
+            <TextField label="Descripción" multiline rows={2} {...props.register('description')} />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField fullWidth label="SKU" {...props.register('sku')} />
-              <TextField fullWidth label="Codigo de barras" {...props.register('barcode')} />
+              <TextField fullWidth label="Código de barras" {...props.register('barcode')} />
             </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
               <TextField
@@ -272,7 +297,7 @@ function ProductDialog(props: ProductDialogProps) {
               />
               <TextField
                 fullWidth
-                label="Stock minimo"
+                label="Stock mínimo"
                 type="number"
                 error={Boolean(props.errors.minimumStock)}
                 helperText={props.errors.minimumStock?.message}

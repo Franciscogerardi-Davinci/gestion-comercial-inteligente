@@ -30,7 +30,7 @@ export function buildSalesPdf(report: SalesReport) {
     .moveDown();
   document.text(`Cantidad de ventas: ${report.summary.salesCount}`);
   document.text(`Ventas: ${formatMoney(report.summary.salesTotal)}`);
-  document.text(`Costo historico: ${formatMoney(report.summary.historicalCost)}`);
+  document.text(`Costo histórico: ${formatMoney(report.summary.historicalCost)}`);
   document.text(`Ganancia bruta: ${formatMoney(report.summary.grossProfit)}`).moveDown();
 
   for (const sale of report.sales) {
@@ -94,7 +94,7 @@ export async function buildSalesExcel(report: SalesReport) {
     { header: 'Subtotal', key: 'subtotal', width: 16 },
     { header: 'Descuento', key: 'discount', width: 16 },
     { header: 'Total', key: 'total', width: 16 },
-    { header: 'Costo historico', key: 'cost', width: 18 },
+    { header: 'Costo histórico', key: 'cost', width: 18 },
     { header: 'Ganancia bruta', key: 'profit', width: 18 },
   ];
   report.sales.forEach((sale) => {

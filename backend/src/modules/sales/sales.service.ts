@@ -2,6 +2,7 @@ import { Prisma, SaleStatus, StockMovementType } from '@prisma/client';
 
 import { prisma } from '../../infrastructure/database/prisma.js';
 import { AppError } from '../../shared/errors/app-error.js';
+import { resolveOptionalDateRange } from '../../shared/utils/date-range.js';
 import type { CreateSaleInput, ListSalesInput } from './sales.schemas.js';
 
 const saleDetailSelect = {
@@ -31,17 +32,8 @@ const saleDetailSelect = {
   },
 } as const;
 
-function dateRange(input: ListSalesInput) {
-  if (!input.dateFrom && !input.dateTo) return undefined;
-
-  return {
-    ...(input.dateFrom ? { gte: new Date(`${input.dateFrom}T00:00:00.000Z`) } : {}),
-    ...(input.dateTo ? { lte: new Date(`${input.dateTo}T23:59:59.999Z`) } : {}),
-  };
-}
-
 export function listSales(businessId: string, filters: ListSalesInput) {
-  const createdAt = dateRange(filters);
+  const createdAt = resolveOptionalDateRange(filters);
 
   return prisma.sale.findMany({
     where: {
@@ -241,7 +233,7 @@ export async function cancelSale(businessId: string, userId: string, id: string)
         throw new AppError(
           409,
           'SALE_PRODUCT_MISSING',
-          `No se encontro el producto historico ${item.productName}.`,
+          `No se encontró el producto histórico ${item.productName}.`,
         );
       }
 

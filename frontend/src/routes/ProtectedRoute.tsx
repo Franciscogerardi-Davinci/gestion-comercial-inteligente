@@ -1,6 +1,7 @@
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
 import { Navigate, Outlet, useLocation } from 'react-router';
 
+import { LoadingState } from '../components/LoadingState';
 import { useAuth } from '../features/auth/useAuth';
 
 export function ProtectedRoute() {
@@ -9,8 +10,8 @@ export function ProtectedRoute() {
 
   if (isLoading) {
     return (
-      <Box sx={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
-        <CircularProgress aria-label="Restaurando sesion" />
+      <Box sx={{ minHeight: '100vh' }}>
+        <LoadingState message="Restaurando sesión..." />
       </Box>
     );
   }

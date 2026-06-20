@@ -2,6 +2,10 @@
   "name": "gestion-comercial-inteligente",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "24.x",
+    "npm": "11.x"
+  },
   "workspaces": [
     "backend",
     "frontend"
@@ -17,6 +21,7 @@
     "prisma:generate": "npm exec --workspace backend -- prisma generate",
     "prisma:validate": "npm exec --workspace backend -- prisma validate",
     "prisma:migrate": "npm exec --workspace backend -- prisma migrate dev",
+    "prisma:deploy": "npm exec --workspace backend -- prisma migrate deploy",
     "prisma:seed": "npm exec --workspace backend -- prisma db seed",
     "prisma:studio": "npm exec --workspace backend -- prisma studio"
   },

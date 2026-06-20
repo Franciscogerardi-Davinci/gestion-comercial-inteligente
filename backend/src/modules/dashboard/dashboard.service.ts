@@ -1,7 +1,7 @@
 import { Prisma, SaleStatus } from '@prisma/client';
 
 import { prisma } from '../../infrastructure/database/prisma.js';
-import { currentUtcDayRange, resolveDateRange } from '../../shared/utils/date-range.js';
+import { currentDayRange, resolveDateRange } from '../../shared/utils/date-range.js';
 import { getProfitReport } from '../reports/reports.service.js';
 
 const zero = () => new Prisma.Decimal(0);
@@ -9,7 +9,7 @@ const zero = () => new Prisma.Decimal(0);
 export async function getDashboardSummary(businessId: string) {
   const now = new Date();
   const monthRange = resolveDateRange({});
-  const dayRange = currentUtcDayRange();
+  const dayRange = currentDayRange();
 
   const [daySales, monthSales, profit, products, latestSales, latestExpenses] = await Promise.all([
     prisma.sale.aggregate({

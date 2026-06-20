@@ -28,11 +28,16 @@ export const createSaleSchema = z.object({
 });
 
 export const listSalesSchema = z.object({
-  query: z.object({
-    dateFrom: z.iso.date().optional(),
-    dateTo: z.iso.date().optional(),
-    status: z.enum(['CONFIRMED', 'CANCELLED']).optional(),
-  }),
+  query: z
+    .object({
+      dateFrom: z.iso.date().optional(),
+      dateTo: z.iso.date().optional(),
+      status: z.enum(['CONFIRMED', 'CANCELLED']).optional(),
+    })
+    .refine((value) => !value.dateFrom || !value.dateTo || value.dateFrom <= value.dateTo, {
+      message: 'La fecha desde no puede ser posterior a la fecha hasta.',
+      path: ['dateTo'],
+    }),
 });
 
 export type CreateSaleInput = z.infer<typeof createSaleSchema>['body'];

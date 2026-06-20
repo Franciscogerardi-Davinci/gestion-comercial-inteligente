@@ -69,14 +69,3 @@ export interface ExpensesReport {
     user: { firstName: string; lastName: string };
   }>;
 }
-
-export interface ProfitReport {
-  range: { dateFrom: string; dateTo: string };
-  salesTotal: string;
-  historicalCost: string;
-  grossProfit: string;
-  expensesTotal: string;
-  estimatedProfit: string;
-  salesCount: number;
-  expensesCount: number;
-}
