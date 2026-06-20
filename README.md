@@ -318,4 +318,4 @@ como servicio público.
 - Aplicación móvil.
 
 Las decisiones de arquitectura se documentan en
-[`docs/architecture.md`](docs/architecture.md).
+[`docs/arquitectura.md`](docs/arquitectura.md).
